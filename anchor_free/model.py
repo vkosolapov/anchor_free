@@ -2,7 +2,7 @@ import torch
 from torch.nn import functional as F
 
 from timm.models.resnet import _create_resnet, Bottleneck
-from torchmetrics import Accuracy
+from torchmetrics import Accuracy, AUROC
 
 from pytorch_lightning import LightningModule
 
@@ -22,7 +22,10 @@ class Model(LightningModule):
             num_classes=10,
         )
         self.model = _create_resnet("resnet50", False, **model_args)
-        self.test_acc = Accuracy()
+        self.test_metrics = {
+            "accuracy": Accuracy(),
+            "roc-auc": AUROC(average="macro"),
+        }
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.parameters())
@@ -42,6 +45,7 @@ class Model(LightningModule):
         x, y = batch
         logits = self.forward(x)
         loss = F.cross_entropy(logits, y.long())
-        self.test_acc(logits, y)
         self.log("test_loss", loss)
-        self.log("test_acc", self.test_acc)
+        for metric in self.test_metrics:
+            self.test_metrics[metric](logits, y)
+            self.log("test_acc", self.test_metrics[metric])

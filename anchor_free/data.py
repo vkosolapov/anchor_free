@@ -10,7 +10,7 @@ class Imagenette(LightningDataModule):
         super().__init__()
         self.data_dir = "/home/vladimir_kosolapov/image_classification/data/imagenette2"
         self.num_workers = 8
-        self.batch_size = 32
+        self.batch_size = 64
 
     @property
     def transform(self):
