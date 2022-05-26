@@ -43,5 +43,8 @@ class Imagenette(LightningDataModule):
     def train_dataloader(self):
         return self.get_dataloader("train")
 
+    def val_dataloader(self):
+        return self.get_dataloader("val")
+
     def test_dataloader(self):
         return self.get_dataloader("val")

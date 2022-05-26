@@ -10,6 +10,7 @@ from pytorch_lightning import LightningModule
 class Model(LightningModule):
     def __init__(self):
         super().__init__()
+        self.num_classes = 10
         model_args = dict(
             block=Bottleneck,
             layers=[2, 2, 2, 2],
@@ -19,13 +20,29 @@ class Model(LightningModule):
             stem_width=32,
             stem_type="deep",
             avg_down=True,
-            num_classes=10,
+            num_classes=self.num_classes,
         )
         self.model = _create_resnet("resnet50", False, **model_args)
-        self.test_metrics = {
-            "accuracy": Accuracy(),
-            "roc-auc": AUROC(average="macro"),
+        self.metrics = {
+            "train": {
+                "accuracy": Accuracy(num_classes=self.num_classes),
+                "rocauc": AUROC(num_classes=self.num_classes, average="macro"),
+            },
+            "val": {
+                "accuracy": Accuracy(num_classes=self.num_classes),
+                "rocauc": AUROC(num_classes=self.num_classes, average="macro"),
+            },
+            "test": {
+                "accuracy": Accuracy(num_classes=self.num_classes),
+                "rocauc": AUROC(num_classes=self.num_classes, average="macro"),
+            },
         }
+        self.train_accuracy = self.metrics["train"]["accuracy"]
+        self.train_rocauc = self.metrics["train"]["rocauc"]
+        self.val_accuracy = self.metrics["val"]["accuracy"]
+        self.val_rocauc = self.metrics["val"]["rocauc"]
+        self.test_accuracy = self.metrics["test"]["accuracy"]
+        self.test_rocauc = self.metrics["test"]["rocauc"]
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.parameters())
@@ -35,17 +52,36 @@ class Model(LightningModule):
     def forward(self, x):
         return self.model(x)
 
-    def training_step(self, batch, batch_idx):
+    def step(self, batch, batch_idx, phase):
         x, y = batch
         logits = self.forward(x)
         loss = F.cross_entropy(logits, y.long())
+        self.log(
+            f"loss/{phase}",
+            loss,
+            prog_bar=True,
+            logger=True,
+            on_step=False,
+            on_epoch=True,
+        )
+        for metric in self.metrics[phase]:
+            self.metrics[phase][metric](logits.cpu(), y.cpu())
+            self.log(
+                f"{metric}/{phase}",
+                self.metrics[phase][metric],
+                prog_bar=False,
+                logger=True,
+                on_step=False,
+                on_epoch=True,
+            )
         return loss
 
+    def training_step(self, batch, batch_idx):
+        loss = self.step(batch, batch_idx, "train")
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        self.step(batch, batch_idx, "val")
+
     def test_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self.forward(x)
-        loss = F.cross_entropy(logits, y.long())
-        self.log("test_loss", loss)
-        for metric in self.test_metrics:
-            self.test_metrics[metric](logits, y)
-            self.log("test_acc", self.test_metrics[metric])
+        self.step(batch, batch_idx, "test")

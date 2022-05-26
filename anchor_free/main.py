@@ -13,26 +13,28 @@ def main():
     trainer = Trainer(
         accelerator="gpu",
         devices=1,
-        # amp_backend="apex",
         precision=16,
         deterministic=True,
-        auto_scale_batch_size="binsearch",
         max_epochs=1000,
         check_val_every_n_epoch=1,
         callbacks=[
-            ModelCheckpoint(monitor="val_accuracy"),
-            EarlyStopping(
-                monitor="val_accuracy",
-                patience=10,
-                min_delta=0.00,
+            ModelCheckpoint(
+                monitor="accuracy/val",
                 mode="max",
-                verbose=False,
+                save_top_k=1,
+                auto_insert_metric_name=True,
+                verbose=True,
+            ),
+            EarlyStopping(
+                monitor="accuracy/val",
+                mode="max",
+                patience=10,
+                verbose=True,
             ),
         ],
         logger=TensorBoardLogger(
             save_dir="logs", name="001_test", version="001_sub_test"
         ),
-        track_grad_norm=2,
         fast_dev_run=False,
     )
     trainer.tune(model, datamodule=data)
