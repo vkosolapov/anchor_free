@@ -2,13 +2,13 @@ from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from model import Model
-from data import Imagenette
+from model.classification_model import ClassificationModel
+from data.imagenette import Imagenette
 
 
 def main():
     seed_everything(seed=42, workers=True)
-    model = Model()
+    model = ClassificationModel()
     data = Imagenette()
     trainer = Trainer(
         accelerator="gpu",

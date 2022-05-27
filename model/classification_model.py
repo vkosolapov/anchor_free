@@ -7,7 +7,7 @@ from torchmetrics import Accuracy, AUROC
 from pytorch_lightning import LightningModule
 
 
-class Model(LightningModule):
+class ClassificationModel(LightningModule):
     def __init__(self):
         super().__init__()
         self.num_classes = 10
