@@ -4,10 +4,10 @@ from torch.nn import functional as F
 from timm.models.resnet import _create_resnet, Bottleneck
 from torchmetrics import Accuracy, AUROC
 
-from pytorch_lightning import LightningModule
+from model.abstract_model import AbstractModel
 
 
-class ClassificationModel(LightningModule):
+class ClassificationModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self.num_classes = 10
@@ -75,13 +75,3 @@ class ClassificationModel(LightningModule):
                 on_epoch=True,
             )
         return loss
-
-    def training_step(self, batch, batch_idx):
-        loss = self.step(batch, batch_idx, "train")
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        self.step(batch, batch_idx, "val")
-
-    def test_step(self, batch, batch_idx):
-        self.step(batch, batch_idx, "test")
