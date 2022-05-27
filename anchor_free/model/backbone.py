@@ -18,6 +18,16 @@ class TIMMBackbone(nn.Module):
                 break
         self.backbone = backbone
 
+    def get_output_channels(self):
+        channels = 0
+        modules = list(self.backbone.modules())
+        modules.reverse()
+        for module in modules:
+            if isinstance(module, nn.Conv2d):
+                channels = module.out_channels
+                break
+        return channels
+
     def forward(self, x):
         return self.backbone(x)
 
@@ -27,8 +37,8 @@ if __name__ == "__main__":
     from timm import create_model
 
     model_configs = [
-        "densenet121",
-        "dpn68",
+        # "densenet121",
+        # "dpn68",
         "dla34",
         "cspresnet50",
         "vovnet39a",
@@ -55,8 +65,10 @@ if __name__ == "__main__":
         model = TIMMBackbone(model)
         input = torch.zeros(size=(2, 3, 224, 224))
         output = model(input)
+        channels = model.get_output_channels()
         assert (
             output.dim() == 4
             and output.size(0) == 2
+            and output.size(1) == channels
             and output.size(2) == output.size(3)
         ), f"Wrong backbone output for model {cfg}"

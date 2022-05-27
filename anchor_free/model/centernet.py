@@ -3,17 +3,10 @@ import torch.nn as nn
 
 class CenterNet(nn.Module):
     def __init__(
-        self, num_classes, backbone, act_layer=nn.ReLU, norm_layer=nn.BatchNorm2d
+        self, num_classes, input_channels, act_layer=nn.ReLU, norm_layer=nn.BatchNorm2d
     ):
         super().__init__()
-        channels = 0
-        modules = list(backbone.modules())
-        modules.reverse()
-        for module in modules:
-            if isinstance(module, nn.Conv2d):
-                channels = module.out_channels
-                break
-        self.channels = channels
+        self.channels = input_channels
         self.act_layer = act_layer
         self.norm_layer = norm_layer
 

@@ -26,7 +26,8 @@ class DetectionModel(AbstractModel):
         )
         self.backbone = _create_resnet("resnet50", False, **backbone_args)
         self.backbone = TIMMBackbone(self.backbone)
-        self.head = CenterNet(num_classes=self.num_classes, backbone=self.backbone)
+        channels = self.backbone.get_output_channels()
+        self.head = CenterNet(num_classes=self.num_classes, channels=channels)
         self.metrics = {
             "train": {},
             "val": {
