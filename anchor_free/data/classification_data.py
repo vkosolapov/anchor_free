@@ -1,11 +1,10 @@
 import os
-import torch
 from torchvision import datasets, transforms
 
-from pytorch_lightning import LightningDataModule
+from data.abstract_data import AbstractDataModule
 
 
-class Imagenette(LightningDataModule):
+class ClassificationDataModule(AbstractDataModule):
     def __init__(self):
         super().__init__()
         self.data_dir = "/home/vladimir_kosolapov/image_classification/data/imagenette2"
@@ -25,26 +24,8 @@ class Imagenette(LightningDataModule):
             ]
         )
 
-    def get_dataloader(self, phase):
+    def get_dataset(self, phase):
         image_dataset = datasets.ImageFolder(
             os.path.join(self.data_dir, phase), self.transform
         )
-        data_loader = torch.utils.data.DataLoader(
-            image_dataset,
-            batch_size=self.batch_size,
-            shuffle=(phase == "train"),
-            drop_last=(phase == "train"),
-            num_workers=self.num_workers,
-            persistent_workers=True,
-            pin_memory=True,
-        )
-        return data_loader
-
-    def train_dataloader(self):
-        return self.get_dataloader("train")
-
-    def val_dataloader(self):
-        return self.get_dataloader("val")
-
-    def test_dataloader(self):
-        return self.get_dataloader("val")
+        return image_dataset
