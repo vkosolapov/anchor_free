@@ -33,7 +33,7 @@ def main():
             ),
         ],
         logger=TensorBoardLogger(
-            save_dir="logs", name="001_test", version="001_sub_test"
+            save_dir="logs", name="001_test", version="002_sub_test"
         ),
         fast_dev_run=False,
     )
