@@ -13,7 +13,6 @@ class DetectionModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self.num_classes = 6
-        self.classification_threshold = MODEL_CLASSIFICATION_THRESHOLD
         backbone_args = dict(
             block=Bottleneck,
             layers=[2, 2, 2, 2],
@@ -81,7 +80,7 @@ class DetectionModel(AbstractModel):
 
     def step(self, batch, batch_idx, phase):
         x, y, labels_count = batch
-        targets = self.head.preprocess_targets(y)
+        targets = self.head.preprocess_targets(y, labels_count)
         logits = self.forward(x)
         predictions = self.head.postprocess_predictions(logits)
         loss, separate_losses = self.head.loss(logits, targets)
