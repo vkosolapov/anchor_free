@@ -7,6 +7,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 from data.abstract_data import AbstractDataModule
+from consts import *
 
 
 class DetectionDataModule(AbstractDataModule):
@@ -15,9 +16,7 @@ class DetectionDataModule(AbstractDataModule):
         self.data_dir = (
             "/home/vladimir_kosolapov/object_detection/data/AFO/PART_1/PART_1"
         )
-        self.num_workers = 8
-        self.batch_size = 64
-        self.image_size = 640
+        self.image_size = DATA_IMAGE_SIZE
 
     @property
     def transform(self):
@@ -68,7 +67,7 @@ class YOLODataset(Dataset):
         labels_count = labels.shape[0]
         labels = F.pad(
             torch.Tensor(labels),
-            (0, 5 - labels.shape[1], 0, 200 - labels.shape[0]),
+            (0, 5 - labels.shape[1], 0, DATA_MAX_BOXES_COUNT - labels.shape[0]),
             "constant",
             0.0,
         )

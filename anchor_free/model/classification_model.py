@@ -5,6 +5,7 @@ from timm.models.resnet import _create_resnet, Bottleneck
 from torchmetrics import Accuracy, AUROC
 
 from model.abstract_model import AbstractModel
+from consts import *
 
 
 class ClassificationModel(AbstractModel):

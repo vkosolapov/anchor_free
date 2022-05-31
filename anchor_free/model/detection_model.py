@@ -6,13 +6,14 @@ from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from model.abstract_model import AbstractModel
 from model.backbone import TIMMBackbone
 from model.centernet import CenterNet
+from consts import *
 
 
 class DetectionModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self.num_classes = 6
-        self.classification_threshold = 0.5
+        self.classification_threshold = MODEL_CLASSIFICATION_THRESHOLD
         backbone_args = dict(
             block=Bottleneck,
             layers=[2, 2, 2, 2],

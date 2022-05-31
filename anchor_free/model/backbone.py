@@ -71,4 +71,4 @@ if __name__ == "__main__":
             and output.size(0) == 2
             and output.size(1) == channels
             and output.size(2) == output.size(3)
-        ), f"Wrong backbone output for model {cfg}"
+        ), f"Wrong backbone output for model {cfg}: {output.size()}"

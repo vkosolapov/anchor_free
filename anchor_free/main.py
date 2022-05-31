@@ -4,6 +4,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from model.classification_model import ClassificationModel
 from data.classification_data import ClassificationDataModule
+from consts import *
 
 
 def main():
@@ -11,31 +12,33 @@ def main():
     model = ClassificationModel()
     data = ClassificationDataModule()
     trainer = Trainer(
-        accelerator="gpu",
-        devices=1,
-        precision=16,
+        accelerator=TRAINER_ACCELERATOR,
+        devices=TRAINER_DEVICES,
+        precision=TRAINER_PRECISION,
         deterministic=True,
-        max_epochs=1000,
+        max_epochs=TRAINER_MAX_EPOCHS,
         check_val_every_n_epoch=1,
         callbacks=[
             ModelCheckpoint(
-                monitor="accuracy/val",
-                mode="max",
+                monitor=TRAINER_MONITOR,
+                mode=TRAINER_MONITOR_MODE,
                 save_top_k=1,
                 auto_insert_metric_name=True,
                 verbose=True,
             ),
             EarlyStopping(
-                monitor="accuracy/val",
-                mode="max",
-                patience=10,
+                monitor=TRAINER_MONITOR,
+                mode=TRAINER_MONITOR_MODE,
+                patience=TRAINER_EARLY_STOPPING_PATIENCE,
                 verbose=True,
             ),
         ],
         logger=TensorBoardLogger(
-            save_dir="logs", name="001_test", version="002_sub_test"
+            save_dir="logs",
+            name=TRAINER_EXPERIMENT_NAME,
+            version=TRAINER_EXPERIMENT_VERSION,
         ),
-        fast_dev_run=False,
+        fast_dev_run=TRAINER_FAST_DEV_RUN,
     )
     trainer.tune(model, datamodule=data)
     trainer.fit(model, datamodule=data)

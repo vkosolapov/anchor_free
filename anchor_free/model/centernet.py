@@ -1,7 +1,11 @@
+import math
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.ops import sigmoid_focal_loss
+
+from consts import *
 
 
 class RegressionLossWithMask(nn.Module):
@@ -27,6 +31,10 @@ class CenterNet(nn.Module):
         self, num_classes, input_channels, act_layer=nn.ReLU, norm_layer=nn.BatchNorm2d
     ):
         super().__init__()
+        self.num_classes = num_classes
+        self.image_size = DATA_IMAGE_SIZE
+        self.stride = 4
+        self.output_size = int(self.image_size / self.stride)
         self.channels = input_channels
         self.act_layer = act_layer
         self.norm_layer = norm_layer

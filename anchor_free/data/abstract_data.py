@@ -3,12 +3,14 @@ from torchvision import transforms
 
 from pytorch_lightning import LightningDataModule
 
+from consts import *
+
 
 class AbstractDataModule(LightningDataModule):
     def __init__(self):
         super().__init__()
-        self.num_workers = 8
-        self.batch_size = 64
+        self.num_workers = DATA_NUM_WORKERS
+        self.batch_size = DATA_BATCH_SIZE
 
     @property
     def transform(self):

@@ -15,8 +15,8 @@ class AbstractModel(LightningModule):
         }
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.model.parameters())
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
+        optimizer = torch.optim.Optimizer(self.model.parameters)
+        scheduler = torch.optim.lr_scheduler._LRScheduler(optimizer)
         return [optimizer], [scheduler]
 
     def forward(self, x):
