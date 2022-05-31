@@ -1,4 +1,25 @@
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from torchvision.ops import sigmoid_focal_loss
+
+
+class RegressionLossWithMask(nn.Module):
+    def __init__(self, smooth=False):
+        super().__init__()
+        self.smooth = smooth
+
+    def forward(self, pred, target, mask):
+        pred = pred.permute(0, 2, 3, 1)
+        target = target.permute(0, 2, 3, 1)
+        expand_mask = torch.unsqueeze(mask, -1).repeat(1, 1, 1, 2)
+        if self.smooth:
+            loss_func = F.smooth_l1_loss
+        else:
+            loss_func = F.l1_loss
+        loss = loss_func(pred * expand_mask, target * expand_mask, reduction="sum")
+        loss = loss / (expand_mask.sum() + 1e-4)
+        return loss
 
 
 class CenterNet(nn.Module):
@@ -19,8 +40,8 @@ class CenterNet(nn.Module):
         self.classification_head = self._make_head(
             input_channels=32, output_channels=num_classes
         )
-        self.size_head = self._make_head(input_channels=32, output_channels=2)
         self.offset_head = self._make_head(input_channels=32, output_channels=2)
+        self.size_head = self._make_head(input_channels=32, output_channels=2)
 
     def _make_decoder(self, num_layers, channels_list, kernels_list):
         layers = []
@@ -68,12 +89,25 @@ class CenterNet(nn.Module):
     def forward(self, x):
         x = self.decoder(x)
         cls = self.classification_head(x)
-        size = self.size_head(x)
         offset = self.offset_head(x)
-        return (cls, size, offset)
+        size = self.size_head(x)
+        return {"cls": cls, "offset": offset, "size": size}
 
     def loss(self, logits, targets):
-        return 0.0, {"loss_cls": 0.0, "loss_offset": 0.0, "loss_size": 0.0}
+        loss_cls = sigmoid_focal_loss(
+            logits["cls"], targets["cls"], alpha=0.25, gamma=2.0, reduction="mean"
+        )
+        regression_loss = RegressionLossWithMask(smooth=True)
+        loss_offset = regression_loss(
+            logits["offset"], targets["offset"], targets["mask"]
+        )
+        loss_size = regression_loss(logits["size"], targets["size"], targets["mask"])
+        loss = loss_cls * 1.0 + loss_offset * 0.1 + loss_size * 0.1
+        return loss, {
+            "loss_cls": loss_cls,
+            "loss_offset": loss_offset,
+            "loss_size": loss_size,
+        }
 
     def preprocess_targets(self, labels):
         return labels
