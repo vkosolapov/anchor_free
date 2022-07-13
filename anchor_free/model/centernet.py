@@ -40,9 +40,7 @@ class CenterNet(nn.Module):
         self.norm_layer = norm_layer
 
         self.decoder = self._make_decoder(
-            num_layers=3,
-            channels_list=[128, 64, 32],
-            kernels_list=[4, 4, 4],
+            num_layers=3, channels_list=[128, 64, 32], kernels_list=[4, 4, 4],
         )
 
         self.classification_head = self._make_head(
@@ -111,11 +109,10 @@ class CenterNet(nn.Module):
         )
         loss_size = regression_loss(logits["size"], targets["size"], targets["mask"])
         loss = loss_cls * 1.0 + loss_offset * 0.1 + loss_size * 0.1
-        return loss, {
-            "loss_cls": loss_cls,
-            "loss_offset": loss_offset,
-            "loss_size": loss_size,
-        }
+        return (
+            loss,
+            {"loss_cls": loss_cls, "loss_offset": loss_offset, "loss_size": loss_size,},
+        )
 
     def preprocess_targets(self, labels, labels_count):
         batch_size = labels.size()[0]
@@ -135,9 +132,7 @@ class CenterNet(nn.Module):
 
         boxes = np.array(labels[:, :, :4], dtype=np.float32)
         boxes = np.clip(
-            boxes / self.image_size * self.output_size,
-            0,
-            self.output_size - 1,
+            boxes / self.image_size * self.output_size, 0, self.output_size - 1,
         )
 
         for i in range(batch_size):
@@ -258,7 +253,7 @@ class CenterNet(nn.Module):
                 )
 
                 input_shape = np.array([self.output_size, self.output_size])
-                image_shape = np.array(self.image_size, self.image_size)
+                image_shape = np.array([self.image_size, self.image_size])
 
                 # if letterbox_image:
                 #    new_shape = np.round(
