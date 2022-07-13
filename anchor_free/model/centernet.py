@@ -252,8 +252,17 @@ class CenterNet(nn.Module):
                     output[i][:, 2:4] - output[i][:, 0:2],
                 )
 
-                input_shape = np.array([self.output_size, self.output_size])
-                image_shape = np.array([self.image_size, self.image_size])
+                input_shape = np.array(
+                    [
+                        self.output_size,
+                        self.output_size,
+                        self.output_size,
+                        self.output_size,
+                    ]
+                )
+                image_shape = np.array(
+                    [self.image_size, self.image_size, self.image_size, self.image_size]
+                )
 
                 # if letterbox_image:
                 #    new_shape = np.round(
