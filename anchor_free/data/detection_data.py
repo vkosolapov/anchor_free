@@ -13,9 +13,7 @@ from consts import *
 class DetectionDataModule(AbstractDataModule):
     def __init__(self):
         super().__init__()
-        self.data_dir = (
-            "/home/vladimir_kosolapov/object_detection/data/AFO/PART_1/PART_1"
-        )
+        self.data_dir = "datasets/AFO/PART_1/PART_1"
         self.image_size = DATA_IMAGE_SIZE
 
     @property
@@ -23,10 +21,7 @@ class DetectionDataModule(AbstractDataModule):
         mean = (0.40789655, 0.44719303, 0.47026116)
         std = (0.2886383, 0.27408165, 0.27809834)
         return transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize(mean, std),
-            ]
+            [transforms.ToTensor(), transforms.Normalize(mean, std),]
         )
 
     def get_dataset(self, phase):
@@ -40,10 +35,7 @@ class DetectionDataModule(AbstractDataModule):
 
 class YOLODataset(Dataset):
     def __init__(
-        self,
-        data_dir,
-        image_size,
-        transform,
+        self, data_dir, image_size, transform,
     ):
         super().__init__()
         self.data_dir = data_dir

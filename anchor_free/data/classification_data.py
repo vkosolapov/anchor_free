@@ -7,7 +7,7 @@ from data.abstract_data import AbstractDataModule
 class ClassificationDataModule(AbstractDataModule):
     def __init__(self):
         super().__init__()
-        self.data_dir = "/home/vladimir_kosolapov/image_classification/data/imagenette2"
+        self.data_dir = "datasets/imagenette2"
 
     @property
     def transform(self):
