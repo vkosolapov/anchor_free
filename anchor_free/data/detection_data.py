@@ -26,20 +26,18 @@ class DetectionDataModule(AbstractDataModule):
 
     def get_dataset(self, phase):
         image_dataset = YOLODataset(
-            os.path.join(self.data_dir, f"{phase}.txt"),
-            image_size=self.image_size,
-            transform=self.transform,
+            self.data_dir, phase, image_size=self.image_size, transform=self.transform,
         )
         return image_dataset
 
 
 class YOLODataset(Dataset):
     def __init__(
-        self, data_dir, image_size, transform,
+        self, data_dir, phase, image_size, transform,
     ):
         super().__init__()
         self.data_dir = data_dir
-        with open(self.data_dir) as file:
+        with open(os.path.join(self.data_dir, f"{phase}.txt")) as file:
             self.annotation_lines = file.readlines()
         self.length = len(self.annotation_lines)
         self.image_size = image_size
@@ -72,22 +70,26 @@ class YOLODataset(Dataset):
     def load_image(self, index):
         annotation_line = self.annotation_lines[index]
 
-        image = Image.open(annotation_line.strip("\n"))
+        image = Image.open(
+            os.path.join(self.data_dir, "images", annotation_line.strip("\n"))
+        )
         if len(np.shape(image)) != 3 or np.shape(image)[2] != 3:
             image = image.convert("RGB")
-        image = image.resize(self.image_size, Image.LANCZOS)
+        image = image.resize((self.image_size, self.image_size), Image.LANCZOS)
         image = np.asarray(image)
 
         with open(
-            annotation_line.replace("images", "labels")
-            .replace("jpg", "txt")
-            .strip("\n")
+            os.path.join(
+                self.data_dir,
+                "6categories",
+                annotation_line.replace("jpg", "txt").strip("\n"),
+            )
         ) as file:
             labels = file.readlines()
         labels_ = []
         for label in labels:
             label_ = label.strip("\n").split(" ")
-            labels_.append(label_.pop(0))
+            label_.append(label_.pop(0))
             label_[0] = int(float(label_[0]) * self.image_size)
             label_[1] = int(float(label_[1]) * self.image_size)
             label_[2] = int(float(label_[2]) * self.image_size)

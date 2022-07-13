@@ -27,7 +27,7 @@ class DetectionModel(AbstractModel):
         self.backbone = _create_resnet("resnet50", False, **backbone_args)
         self.backbone = TIMMBackbone(self.backbone)
         channels = self.backbone.get_output_channels()
-        self.head = CenterNet(num_classes=self.num_classes, channels=channels)
+        self.head = CenterNet(num_classes=self.num_classes, input_channels=channels)
         self.metrics = {
             "train": {},
             "val": {
@@ -64,12 +64,12 @@ class DetectionModel(AbstractModel):
             },
         }
         self.val_map_05 = self.metrics["val"]["map_05"]
-        self.val_map_095 = self.metrics["val"]["map_095"]
+        self.val_map_095 = self.metrics["val"]["map_05_095"]
         self.test_map_05 = self.metrics["test"]["map_05"]
-        self.test_map_095 = self.metrics["test"]["map_095"]
+        self.test_map_095 = self.metrics["test"]["map_05_095"]
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.model.parameters())
+        optimizer = torch.optim.Adam(self.parameters())
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
         return [optimizer], [scheduler]
 
