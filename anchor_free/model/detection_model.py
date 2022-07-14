@@ -114,13 +114,14 @@ class DetectionModel(AbstractModel):
                     "scores": torch.Tensor(),
                     "labels": torch.Tensor(),
                 }
-            labels_count = labels_count[i]
             if not y[i] is None:
                 labels = {
-                    "boxes": torch.Tensor(y[i, :labels_count, :4]).view(
-                        labels_count, 4
+                    "boxes": torch.Tensor(y[i, : labels_count[i], :4]).view(
+                        labels_count[i], 4
                     ),
-                    "labels": torch.Tensor(y[i, :labels_count, 4]).view(labels_count),
+                    "labels": torch.Tensor(y[i, : labels_count[i], 4]).view(
+                        labels_count[i]
+                    ),
                 }
             else:
                 labels = {
