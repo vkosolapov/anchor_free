@@ -154,9 +154,9 @@ class CenterNet(nn.Module):
                     target_offset[i, center_int[0], center_int[1]] = center - center_int
                     target_size[i, center_int[0], center_int[1]] = 1.0 * w, 1.0 * h
                     target_regression_mask[i, center_int[0], center_int[1]] = 1
-        target_cls = np.transpose(target_cls, (0, 3, 1, 2))
-        target_offset = np.transpose(target_offset, (0, 3, 1, 2))
-        target_size = np.transpose(target_size, (0, 3, 1, 2))
+        target_cls = torch.tensor(np.transpose(target_cls, (0, 3, 1, 2)))
+        target_offset = torch.tensor(np.transpose(target_offset, (0, 3, 1, 2)))
+        target_size = torch.tensor(np.transpose(target_size, (0, 3, 1, 2)))
 
         return {
             "cls": target_cls,
