@@ -64,9 +64,9 @@ class DetectionModel(AbstractModel):
             },
         }
         self.val_map_05 = self.metrics["val"]["map_05"]
-        self.val_map_095 = self.metrics["val"]["map_05_095"]
+        self.val_map_05_095 = self.metrics["val"]["map_05_095"]
         self.test_map_05 = self.metrics["test"]["map_05"]
-        self.test_map_095 = self.metrics["test"]["map_05_095"]
+        self.test_map_05_095 = self.metrics["test"]["map_05_095"]
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters())
