@@ -103,31 +103,34 @@ class DetectionModel(AbstractModel):
             )
         for i in range(len(predictions)):
             if not predictions[i] is None:
-                preds = {
-                    "boxes": torch.Tensor(predictions[i][:, :4]),
-                    "scores": torch.Tensor(predictions[i][:, 4]),
-                    "labels": torch.Tensor(predictions[i][:, 5]),
-                }
+                preds = [
+                    {
+                        "boxes": torch.Tensor(predictions[i][:, :4]),
+                        "scores": torch.Tensor(predictions[i][:, 4]),
+                        "labels": torch.Tensor(predictions[i][:, 5]),
+                    }
+                ]
             else:
-                preds = {
-                    "boxes": torch.Tensor(),
-                    "scores": torch.Tensor(),
-                    "labels": torch.Tensor(),
-                }
+                preds = [
+                    {
+                        "boxes": torch.Tensor(),
+                        "scores": torch.Tensor(),
+                        "labels": torch.Tensor(),
+                    }
+                ]
             if not y[i] is None:
-                labels = {
-                    "boxes": torch.Tensor(y[i, : labels_count[i], :4]).view(
-                        labels_count[i], 4
-                    ),
-                    "labels": torch.Tensor(y[i, : labels_count[i], 4]).view(
-                        labels_count[i]
-                    ),
-                }
+                labels = [
+                    {
+                        "boxes": torch.Tensor(y[i, : labels_count[i], :4]).view(
+                            labels_count[i], 4
+                        ),
+                        "labels": torch.Tensor(y[i, : labels_count[i], 4]).view(
+                            labels_count[i]
+                        ),
+                    }
+                ]
             else:
-                labels = {
-                    "boxes": torch.Tensor(),
-                    "labels": torch.Tensor(),
-                }
+                labels = [{"boxes": torch.Tensor(), "labels": torch.Tensor(),}]
             for metric in self.metrics[phase]:
                 if isinstance(self.metrics[phase][metric], MeanAveragePrecision):
                     self.metrics[phase][metric](preds, labels)
