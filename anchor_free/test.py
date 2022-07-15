@@ -5,8 +5,8 @@ if __name__ == "__main__":
     from model.centernet import CenterNet
 
     model_configs = [
-        # "densenet121",
-        # "dpn68",
+        "densenet121",
+        "dpn68",
         "dla34",
         "cspresnet50",
         "vovnet39a",
@@ -19,8 +19,8 @@ if __name__ == "__main__":
         "nfnet_f0",
         "efficientnet_b0",
         "regnetx_002",
-        # "hrnet_w18",
-        "ghostnet_050",
+        "hrnet_w18",
+        # "ghostnet_050",
         "convnext_tiny",
         # "vit_tiny_patch16_224",
         # "swin_base_patch4_window7_224",
@@ -42,11 +42,14 @@ if __name__ == "__main__":
         ), f"Wrong backbone output for model {cfg}: {output.size()}"
         head = CenterNet(num_classes=10, input_channels=channels)
         output = head.decoder(output)
+        cls_output = head.classification_head(output)
+        offset_output = head.offset_head(output)
+        size_output = head.size_head(output)
         assert (
-            head.classification_head(output).size()[2] == 160
-            and head.offset_head(output).size()[2] == 160
-            and head.size_head(output).size()[2] == 160
-            and head.classification_head(output).size()[3] == 160
-            and head.offset_head(output).size()[3] == 160
-            and head.size_head(output).size()[3] == 160
-        ), "Wrong dimensions in CenterNet"
+            cls_output.size()[2] == 160
+            and offset_output.size()[2] == 160
+            and size_output.size()[2] == 160
+            and cls_output.size()[3] == 160
+            and offset_output.size()[3] == 160
+            and size_output.size()[3] == 160
+        ), f"Wrong dimensions in CenterNet {cfg}: {(cls_output.size(), offset_output.size(), size_output.size())}"
