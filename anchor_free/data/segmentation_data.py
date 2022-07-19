@@ -29,8 +29,8 @@ class SegmentationDataModule(AbstractDataModule):
 
 class ClothesDataset(Dataset):
     def __init__(self, data_dir, phase, transform):
-        self.image_folder = f"{data_dir}/jpeg_images/IMAGES"
-        self.mask_folder = f"{data_dir}/jpeg_masks/MASKS"
+        self.image_folder = f"{data_dir}/png_images/IMAGES"
+        self.mask_folder = f"{data_dir}/png_masks/MASKS"
         if phase == "train":
             self.list_img = sorted(os.listdir(self.image_folder))[:800]
             self.list_mask = sorted(os.listdir(self.mask_folder))[:800]
