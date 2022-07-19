@@ -42,7 +42,8 @@ def main():
     )
     trainer.tune(model, datamodule=data)
     trainer.fit(model, datamodule=data)
-    trainer.test(ckpt_path="best", datamodule=data)
+    if not TRAINER_FAST_DEV_RUN:
+        trainer.test(ckpt_path="best", datamodule=data)
 
 
 if __name__ == "__main__":
