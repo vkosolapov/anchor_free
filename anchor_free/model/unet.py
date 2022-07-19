@@ -26,7 +26,7 @@ class UNet(nn.Module):
                 nn.init.kaiming_normal_(module.weight, nonlinearity="relu")
             elif isinstance(module, nn.ConvTranspose2d):
                 nn.init.kaiming_normal_(module.weight, nonlinearity="relu")
-            elif isinstance(module, self.norm_layer):
+            elif isinstance(module, nn.BatchNorm2d):
                 nn.init.constant_(module.weight, 1)
                 nn.init.constant_(module.bias, 0)
 
