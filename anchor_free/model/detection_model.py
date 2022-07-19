@@ -140,6 +140,7 @@ class DetectionModel(AbstractModel):
                 self.log(
                     f"{metric}/{phase}",
                     self.metrics[phase][metric]["map"],
+                    metric_attribute=f"{phase}_{metric}",
                     prog_bar=False,
                     logger=True,
                     on_step=False,
