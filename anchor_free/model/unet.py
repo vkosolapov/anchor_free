@@ -18,6 +18,18 @@ class UNet(nn.Module):
         self.up4 = Up(channels[1], channels[0], bilinear)
         self.outc = OutConv(channels[0], num_classes)
 
+        self.initialize()
+
+    def initialize(self):
+        for module in self.modules():
+            if isinstance(module, nn.Conv2d):
+                nn.init.kaiming_normal_(module.weight, nonlinearity="relu")
+            elif isinstance(module, nn.ConvTranspose2d):
+                nn.init.kaiming_normal_(module.weight, nonlinearity="relu")
+            elif isinstance(module, self.norm_layer):
+                nn.init.constant_(module.weight, 1)
+                nn.init.constant_(module.bias, 0)
+
     def forward(self, x):
         x1, x2, x3, x4, x5 = x
         x = self.up1(x5, x4)

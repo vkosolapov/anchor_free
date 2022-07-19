@@ -49,6 +49,8 @@ class CenterNet(nn.Module):
         self.offset_head = self._make_head(input_channels=32, output_channels=2)
         self.size_head = self._make_head(input_channels=32, output_channels=2)
 
+        self.initialize()
+
     def _make_decoder(self, num_layers, channels_list, kernels_list):
         layers = []
         for i in range(num_layers):
