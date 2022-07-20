@@ -12,7 +12,7 @@ from consts import *
 class SegmentationDataModule(AbstractDataModule):
     def __init__(self):
         super().__init__()
-        self.data_dir = "datasets/clothing_segmentation"
+        self.data_dir = "../input/people-clothing-segmentation"
 
     @property
     def transform(self):
