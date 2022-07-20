@@ -16,9 +16,9 @@ class SegmentationModel(AbstractModel):
         backbone_args = dict(
             block=Bottleneck,
             layers=[2, 2, 2, 2],
-            cardinality=32,
-            base_width=4,
-            block_args=dict(attn_layer="eca"),
+            # cardinality=32,
+            # base_width=4,
+            # block_args=dict(attn_layer="eca"),
             stem_width=32,
             stem_type="deep",
             avg_down=True,
