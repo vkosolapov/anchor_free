@@ -102,6 +102,12 @@ class CenterNet(nn.Module):
         return {"cls": cls, "offset": offset, "size": size}
 
     def loss(self, logits, targets):
+        if logits["cls"].is_cuda:
+            device = logits["cls"].get_device()
+            targets["cls"] = targets["cls"].to(device)
+            targets["offset"] = targets["offset"].to(device)
+            targets["size"] = targets["size"].to(device)
+            targets["mask"] = targets["mask"].to(device)
         loss_cls = sigmoid_focal_loss(
             logits["cls"], targets["cls"], alpha=0.25, gamma=2.0, reduction="mean"
         )
