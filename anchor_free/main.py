@@ -1,6 +1,6 @@
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
-from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.loggers.wandb import WandbLogger
 
 from model.detection_model import DetectionModel
 from data.detection_data import DetectionDataModule
@@ -33,7 +33,7 @@ def main():
                 verbose=True,
             ),
         ],
-        logger=TensorBoardLogger(
+        logger=WandbLogger(
             save_dir="logs",
             name=TRAINER_EXPERIMENT_NAME,
             version=TRAINER_EXPERIMENT_VERSION,
