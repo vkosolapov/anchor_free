@@ -46,7 +46,6 @@ def main():
             project=TRAINER_EXPERIMENT_NAME,
             name=TRAINER_EXPERIMENT_VERSION,
         ),
-        log_every_n_steps=1,
         fast_dev_run=TRAINER_FAST_DEV_RUN,
     )
     trainer.tune(model, datamodule=data)
