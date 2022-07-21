@@ -102,12 +102,12 @@ class CenterNet(nn.Module):
         return {"cls": cls, "offset": offset, "size": size}
 
     def loss(self, logits, targets):
-        if logits["cls"].is_cuda:
-            device = logits["cls"].get_device()
-            targets["cls"] = targets["cls"].to(device)
-            targets["offset"] = targets["offset"].to(device)
-            targets["size"] = targets["size"].to(device)
-            targets["mask"] = targets["mask"].to(device)
+        # if logits["cls"].is_cuda:
+        device = logits["cls"].get_device()
+        targets["cls"] = targets["cls"].to(device)
+        targets["offset"] = targets["offset"].to(device)
+        targets["size"] = targets["size"].to(device)
+        targets["mask"] = targets["mask"].to(device)
         loss_cls = sigmoid_focal_loss(
             logits["cls"], targets["cls"], alpha=0.25, gamma=2.0, reduction="mean"
         )
@@ -197,10 +197,10 @@ class CenterNet(nn.Module):
                 torch.arange(0, output_w), torch.arange(0, output_h)
             )
             xv, yv = xv.flatten().float(), yv.flatten().float()
-            if pred_cls.is_cuda:
-                device = pred_cls.get_device()
-                xv = xv.to(device)
-                yv = yv.to(device)
+            # if pred_cls.is_cuda:
+            device = pred_cls.get_device()
+            xv = xv.to(device)
+            yv = yv.to(device)
 
             class_conf, class_pred = torch.max(heat_map, dim=-1)
             mask = class_conf > self.classification_threshold
