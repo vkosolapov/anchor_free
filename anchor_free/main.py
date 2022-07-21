@@ -23,7 +23,6 @@ def main():
                 monitor=TRAINER_MONITOR,
                 mode=TRAINER_MONITOR_MODE,
                 save_top_k=1,
-                auto_insert_metric_name=True,
                 verbose=True,
             ),
             EarlyStopping(
