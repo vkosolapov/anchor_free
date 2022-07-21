@@ -40,7 +40,7 @@ class UNet(nn.Module):
 
     def loss(self, logits, mask):
         mask = F.one_hot(mask, self.num_classes).permute(0, 3, 1, 2).float()
-        return sigmoid_focal_loss(logits, mask)
+        return sigmoid_focal_loss(logits, mask, alpha=0.25, gamma=2.0, reduction="mean")
 
 
 class Up(nn.Module):
