@@ -40,7 +40,7 @@ class UNet(nn.Module):
         return logits
 
     def loss(self, logits, mask):
-        return self.loss_function(logits, mask)
+        return focal_loss_with_logits(logits, mask)
 
 
 class Up(nn.Module):
@@ -96,3 +96,35 @@ class DoubleConv(nn.Module):
 
     def forward(self, x):
         return self.double_conv(x)
+
+
+def focal_loss_with_logits(
+    output,
+    target,
+    gamma=2.0,
+    alpha=0.25,
+    reduction="mean",
+    normalized=False,
+    reduced_threshold=None,
+    eps=1e-6,
+):
+    logpt = F.binary_cross_entropy_with_logits(output, target, reduction="none")
+    pt = torch.exp(-logpt)
+    if reduced_threshold is None:
+        focal_term = (1.0 - pt).pow(gamma)
+    else:
+        focal_term = ((1.0 - pt) / reduced_threshold).pow(gamma)
+        focal_term[pt < reduced_threshold] = 1
+    loss = focal_term * logpt
+    if alpha is not None:
+        loss *= alpha * target + (1 - alpha) * (1 - target)
+    if normalized:
+        norm_factor = focal_term.sum().clamp_min(eps)
+        loss /= norm_factor
+    if reduction == "mean":
+        loss = loss.mean()
+    if reduction == "sum":
+        loss = loss.sum()
+    if reduction == "batchwise_mean":
+        loss = loss.sum(0)
+    return loss
