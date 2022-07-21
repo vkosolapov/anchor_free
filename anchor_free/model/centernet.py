@@ -191,6 +191,10 @@ class CenterNet(nn.Module):
                 torch.arange(0, output_w), torch.arange(0, output_h)
             )
             xv, yv = xv.flatten().float(), yv.flatten().float()
+            if logits.is_cuda:
+                device = logits.get_device()
+                xv = xv.to(device)
+                yv = yv.to(device)
 
             class_conf, class_pred = torch.max(heat_map, dim=-1)
             mask = class_conf > self.classification_threshold
