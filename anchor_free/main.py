@@ -8,7 +8,7 @@ from consts import *
 
 
 def main():
-    seed_everything(seed=42, workers=True)
+    seed_everything(seed=42)
     model = SegmentationModel()
     data = SegmentationDataModule()
     trainer = Trainer(
