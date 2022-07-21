@@ -108,7 +108,7 @@ def focal_loss_with_logits(
     reduced_threshold=None,
     eps=1e-6,
 ):
-    target = torch.Tensor(target, dtype=torch.float16, device=target.get_device())
+    target = target.float()
     logpt = F.binary_cross_entropy_with_logits(output, target, reduction="none")
     pt = torch.exp(-logpt)
     if reduced_threshold is None:
