@@ -84,7 +84,7 @@ class DetectionModel(AbstractModel):
         logits = self.forward(x)
         predictions = self.head.postprocess_predictions(logits)
         loss, separate_losses = self.head.loss(logits, targets)
-        labels_count = labels_count.cpu()
+        y = y.cpu()
         self.log(
             f"loss/{phase}",
             loss,
