@@ -1,10 +1,18 @@
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
-from pytorch_lightning.loggers.wandb import WandbLogger
+from pytorch_lightning.loggers import TensorBoardLogger
+import wandb
 
 from model.segmentation_model import SegmentationModel
 from data.segmentation_data import SegmentationDataModule
 from consts import *
+
+
+wandb.init(
+    project=TRAINER_EXPERIMENT_NAME,
+    name=TRAINER_EXPERIMENT_VERSION,
+    sync_tensorboard=True,
+)
 
 
 def main():
@@ -32,10 +40,10 @@ def main():
                 verbose=True,
             ),
         ],
-        logger=WandbLogger(
+        logger=TensorBoardLogger(
             save_dir="logs",
-            project=TRAINER_EXPERIMENT_NAME,
-            name=TRAINER_EXPERIMENT_VERSION,
+            name=TRAINER_EXPERIMENT_NAME,
+            version=TRAINER_EXPERIMENT_VERSION,
         ),
         fast_dev_run=TRAINER_FAST_DEV_RUN,
     )
