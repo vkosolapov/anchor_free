@@ -191,8 +191,8 @@ class CenterNet(nn.Module):
                 torch.arange(0, output_w), torch.arange(0, output_h)
             )
             xv, yv = xv.flatten().float(), yv.flatten().float()
-            if logits.is_cuda:
-                device = logits.get_device()
+            if pred_cls.is_cuda:
+                device = pred_cls.get_device()
                 xv = xv.to(device)
                 yv = yv.to(device)
 
