@@ -1,5 +1,6 @@
 import os
 import cv2
+from PIL import Image
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -46,9 +47,15 @@ class ClothesDataset(Dataset):
         return len(self.list_img)
 
     def __getitem__(self, idx):
-        img = cv2.imread(os.path.join(self.image_folder, self.list_img[idx]))
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        mask = cv2.imread(os.path.join(self.mask_folder, self.list_mask[idx]), 0)
-        img = self.transform(img)
+        image = Image.open(os.path.join(self.image_folder, self.list_img[idx]))
+        if len(np.shape(image)) != 3 or np.shape(image)[2] != 3:
+            image = image.convert("RGB")
+        image = image.resize(DATA_IMAGE_SIZE_SEGMENTATION, Image.LANCZOS)
+        image = np.asarray(image)
+        image = self.transform(image)
+
+        mask = Image.open(os.path.join(self.image_folder, self.list_mask[idx]))
+        mask = mask.resize(DATA_IMAGE_SIZE_SEGMENTATION, Image.LANCZOS)
         mask = torch.from_numpy(np.array(mask)).long()
-        return (img, mask)
+
+        return (image, mask)

@@ -32,7 +32,7 @@ class CenterNet(nn.Module):
         super().__init__()
         self.num_classes = num_classes
         self.classification_threshold = MODEL_CLASSIFICATION_THRESHOLD
-        self.image_size = DATA_IMAGE_SIZE
+        self.image_size = DATA_IMAGE_SIZE_DETECTION
         self.stride = 4
         self.output_size = int(self.image_size / self.stride)
         self.channels = input_channels

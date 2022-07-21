@@ -4,6 +4,8 @@ import torch.nn.functional as F
 
 from torchvision.ops import sigmoid_focal_loss
 
+from anchor_free.consts import DATA_IMAGE_SIZE_SEGMENTATION
+
 
 class UNet(nn.Module):
     def __init__(self, num_classes, bilinear, channels):
@@ -74,8 +76,8 @@ class OutConv(nn.Module):
 
     def forward(self, x):
         x = self.up(x)
-        diffY = 825 - x.size()[2]
-        diffX = 550 - x.size()[3]
+        diffY = DATA_IMAGE_SIZE_SEGMENTATION[0] - x.size()[2]
+        diffX = DATA_IMAGE_SIZE_SEGMENTATION[1] - x.size()[3]
         x = F.pad(x, [diffX // 2, diffX - diffX // 2, diffY // 2, diffY - diffY // 2])
         return self.conv(x)
 
