@@ -2,15 +2,15 @@ from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers.wandb import WandbLogger
 
-from model.detection_model import DetectionModel
-from data.detection_data import DetectionDataModule
+from model.segmentation_model import SegmentationModel
+from data.segmentation_data import SegmentationDataModule
 from consts import *
 
 
 def main():
     seed_everything(seed=42)
-    model = DetectionModel()
-    data = DetectionDataModule()
+    model = SegmentationModel()
+    data = SegmentationDataModule()
     trainer = Trainer(
         accelerator=TRAINER_ACCELERATOR,
         devices=TRAINER_DEVICES,
