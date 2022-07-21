@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torchvision.ops import sigmoid_focal_loss
+from segmentation_models_pytorch.losses import FocalLoss
 
 
 class UNet(nn.Module):
@@ -10,6 +10,7 @@ class UNet(nn.Module):
         super(UNet, self).__init__()
         self.num_classes = num_classes
         self.bilinear = bilinear
+        self.loss_function = FocalLoss(mode="multiclass")
 
         self.up1 = Up(channels[4], channels[3], bilinear)
         self.up2 = Up(channels[3], channels[2], bilinear)
@@ -39,7 +40,7 @@ class UNet(nn.Module):
         return logits
 
     def loss(self, logits, mask):
-        return sigmoid_focal_loss(logits, mask, alpha=0.25, gamma=2.0, reduction="mean")
+        return self.loss_function(logits, mask)
 
 
 class Up(nn.Module):
