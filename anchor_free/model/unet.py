@@ -76,8 +76,8 @@ class OutConv(nn.Module):
 
     def forward(self, x):
         x = self.up(x)
-        diffY = DATA_IMAGE_SIZE_SEGMENTATION[0] - x.size()[2]
-        diffX = DATA_IMAGE_SIZE_SEGMENTATION[1] - x.size()[3]
+        diffY = DATA_IMAGE_SIZE_SEGMENTATION[1] - x.size()[2]
+        diffX = DATA_IMAGE_SIZE_SEGMENTATION[0] - x.size()[3]
         x = F.pad(x, [diffX // 2, diffX - diffX // 2, diffY // 2, diffY - diffY // 2])
         return self.conv(x)
 
