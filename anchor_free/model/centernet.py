@@ -132,7 +132,7 @@ class CenterNet(nn.Module):
             (batch_size, self.output_size, self.output_size), dtype=np.float32
         )
 
-        boxes = np.array(labels[:, :, :4], dtype=np.float32)
+        boxes = np.array(labels[:, :, :4].cpu(), dtype=np.float32)
         boxes = np.clip(
             boxes / self.image_size * self.output_size, 0, self.output_size - 1,
         )
