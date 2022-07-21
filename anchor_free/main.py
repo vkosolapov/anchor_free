@@ -35,8 +35,8 @@ def main():
         ],
         logger=WandbLogger(
             save_dir="logs",
-            name=TRAINER_EXPERIMENT_NAME,
-            version=TRAINER_EXPERIMENT_VERSION,
+            project=TRAINER_EXPERIMENT_NAME,
+            name=TRAINER_EXPERIMENT_VERSION,
         ),
         fast_dev_run=TRAINER_FAST_DEV_RUN,
     )
