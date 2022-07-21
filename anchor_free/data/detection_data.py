@@ -13,7 +13,9 @@ from consts import *
 class DetectionDataModule(AbstractDataModule):
     def __init__(self):
         super().__init__()
-        self.data_dir = "datasets/AFO/PART_1/PART_1"
+        self.data_dir = (
+            "/kaggle/working/data/afo-aerial-dataset-of-floating-objects/PART_1/PART_1"
+        )
         self.image_size = DATA_IMAGE_SIZE
 
     @property
