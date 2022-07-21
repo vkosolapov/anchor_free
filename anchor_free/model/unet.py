@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from torchvision.ops import sigmoid_focal_loss
 
-from anchor_free.consts import DATA_IMAGE_SIZE_SEGMENTATION
+from consts import *
 
 
 class UNet(nn.Module):
