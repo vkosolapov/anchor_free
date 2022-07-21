@@ -84,9 +84,7 @@ class DetectionModel(AbstractModel):
         logits = self.forward(x)
         predictions = self.head.postprocess_predictions(logits)
         loss, separate_losses = self.head.loss(logits, targets)
-        if predictions.is_cuda:
-            device = predictions.get_device()
-            labels_count = labels_count.to(device)
+        labels_count = labels_count.cpu()
         self.log(
             f"loss/{phase}",
             loss,
