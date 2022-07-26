@@ -4,8 +4,8 @@ from pytorch_lightning.loggers.wandb import WandbLogger
 
 # import wandb
 
-from model.segmentation_model import SegmentationModel
-from data.segmentation_data import SegmentationDataModule
+from model.detection_model import DetectionModel
+from data.detection_data import DetectionDataModule
 from consts import *
 
 
@@ -18,8 +18,8 @@ from consts import *
 
 def main():
     seed_everything(seed=42)
-    model = SegmentationModel()
-    data = SegmentationDataModule()
+    model = DetectionModel()
+    data = DetectionDataModule()
     trainer = Trainer(
         accelerator=TRAINER_ACCELERATOR,
         devices=TRAINER_DEVICES,
