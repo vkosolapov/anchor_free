@@ -12,8 +12,7 @@ class AbstractDataModule(LightningDataModule):
         self.num_workers = DATA_NUM_WORKERS
         self.batch_size = DATA_BATCH_SIZE
 
-    @property
-    def transform(self):
+    def transform(self, phase):
         return transforms.Compose([])
 
     def get_dataset(self, phase):

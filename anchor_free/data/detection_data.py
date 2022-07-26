@@ -1,4 +1,5 @@
 import os
+from functools import partial
 from PIL import Image
 import numpy as np
 import torch
@@ -7,6 +8,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 from data.abstract_data import AbstractDataModule
+from data.augmentation import augmentations
 from consts import *
 
 
@@ -18,17 +20,31 @@ class DetectionDataModule(AbstractDataModule):
         )
         self.image_size = DATA_IMAGE_SIZE_DETECTION
 
-    @property
-    def transform(self):
+    @staticmethod
+    def augment(image, bboxes, augmentation_pipeline):
+        result = augmentation_pipeline(image=image, bboxes=bboxes)
+        return result["image"], result["bboxes"]
+
+    def transform(self, phase):
         mean = (0.40789655, 0.44719303, 0.47026116)
         std = (0.2886383, 0.27408165, 0.27809834)
         return transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize(mean, std),]
+            (
+                [
+                    partial(self.augment, augmentation_pipeline=augmentations),
+                    transforms.ToPILImage(),
+                ]
+                if phase == "train"
+                else []
+            ).extend([transforms.ToTensor(), transforms.Normalize(mean, std)])
         )
 
     def get_dataset(self, phase):
         image_dataset = YOLODataset(
-            self.data_dir, phase, image_size=self.image_size, transform=self.transform,
+            self.data_dir,
+            phase,
+            image_size=self.image_size,
+            transform=self.transform(phase),
         )
         return image_dataset
 

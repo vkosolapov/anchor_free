@@ -1,4 +1,5 @@
 import os
+from functools import partial
 import cv2
 from PIL import Image
 import numpy as np
@@ -7,6 +8,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 from data.abstract_data import AbstractDataModule
+from data.augmentation import augmentations
 from consts import *
 
 
@@ -15,16 +17,29 @@ class SegmentationDataModule(AbstractDataModule):
         super().__init__()
         self.data_dir = "../input/people-clothing-segmentation"
 
-    @property
-    def transform(self):
+    @staticmethod
+    def augment(image, mask, augmentation_pipeline):
+        result = augmentation_pipeline(image=image, mask=mask)
+        return result["image"], result["mask"]
+
+    def transform(self, phase):
         mean = (0.485, 0.456, 0.406)
         std = (0.229, 0.224, 0.225)
         return transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize(mean, std),]
+            (
+                [
+                    partial(self.augment, augmentation_pipeline=augmentations),
+                    transforms.ToPILImage(),
+                ]
+                if phase == "train"
+                else []
+            ).extend([transforms.ToTensor(), transforms.Normalize(mean, std)])
         )
 
     def get_dataset(self, phase):
-        image_dataset = ClothesDataset(self.data_dir, phase, transform=self.transform,)
+        image_dataset = ClothesDataset(
+            self.data_dir, phase, transform=self.transform(phase)
+        )
         return image_dataset
 
 
