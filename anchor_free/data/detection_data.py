@@ -52,6 +52,8 @@ class YOLODataset(Dataset):
             labels = result["bboxes"]
             labels = np.array(labels, dtype=np.int32)
 
+        image = self.transform(image)
+
         if len(labels.shape) < 2:
             labels = np.expand_dims(labels, axis=1)
         labels_count = labels.shape[0]
