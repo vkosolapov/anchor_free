@@ -32,7 +32,7 @@ class DetectionModel(AbstractModel):
             features_only=True,
             num_classes=self.num_classes,
         )
-        self.backbone = TIMMBackbone(self.backbone)
+        self.backbone = TIMMBackbone(self.backbone, multi_output=True)
         channels = self.backbone.get_output_channels()
         self.head = CenterNet(num_classes=self.num_classes, input_channels=channels)
         self.metrics = {
