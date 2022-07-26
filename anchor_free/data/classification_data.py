@@ -18,21 +18,25 @@ class ClassificationDataModule(AbstractDataModule):
         return augmentation_pipeline(image=image)["image"]
 
     @staticmethod
-    def transform(phase):
+    def transforms(phase):
         mean = (0.485, 0.456, 0.406)
         std = (0.229, 0.224, 0.225)
-        return transforms.Compose(
-            (
+        if phase == "train":
+            return transforms.Compose(
                 [
                     partial(
                         ClassificationDataModule.augment,
                         augmentation_pipeline=augmentations,
                     ),
                     transforms.ToPILImage(),
+                    transforms.Resize(256),
+                    transforms.CenterCrop(224),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean, std),
                 ]
-                if phase == "train"
-                else []
-            ).extend(
+            )
+        else:
+            return transforms.Compose(
                 [
                     transforms.Resize(256),
                     transforms.CenterCrop(224),
@@ -40,10 +44,10 @@ class ClassificationDataModule(AbstractDataModule):
                     transforms.Normalize(mean, std),
                 ]
             )
-        )
 
     def get_dataset(self, phase):
         image_dataset = datasets.ImageFolder(
-            os.path.join(self.data_dir, phase), self.transform(phase)
+            os.path.join(self.data_dir, phase),
+            ClassificationDataModule.transforms(phase),
         )
         return image_dataset
