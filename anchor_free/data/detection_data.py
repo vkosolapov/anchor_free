@@ -76,7 +76,7 @@ class YOLODataset(Dataset):
         if len(np.shape(image)) != 3 or np.shape(image)[2] != 3:
             image = image.convert("RGB")
         image = image.resize((self.image_size, self.image_size), Image.LANCZOS)
-        image = np.asarray(image)
+        # image = np.asarray(image)
 
         with open(
             os.path.join(
