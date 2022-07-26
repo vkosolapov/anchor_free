@@ -17,25 +17,6 @@ class SegmentationDataModule(AbstractDataModule):
         super().__init__()
         self.data_dir = "../input/people-clothing-segmentation"
 
-    @staticmethod
-    def augment(image, mask, augmentation_pipeline):
-        result = augmentation_pipeline(image=image, mask=mask)
-        return result["image"], result["mask"]
-
-    def transform(self, phase):
-        mean = (0.485, 0.456, 0.406)
-        std = (0.229, 0.224, 0.225)
-        return transforms.Compose(
-            (
-                [
-                    partial(self.augment, augmentation_pipeline=augmentations),
-                    transforms.ToPILImage(),
-                ]
-                if phase == "train"
-                else []
-            ).extend([transforms.ToTensor(), transforms.Normalize(mean, std)])
-        )
-
     def get_dataset(self, phase):
         image_dataset = ClothesDataset(
             self.data_dir, phase, transform=self.transform(phase)
@@ -47,6 +28,7 @@ class ClothesDataset(Dataset):
     def __init__(self, data_dir, phase, transform):
         self.image_folder = f"{data_dir}/png_images/IMAGES"
         self.mask_folder = f"{data_dir}/png_masks/MASKS"
+        self.phase = phase
         if phase == "train":
             self.list_img = sorted(os.listdir(self.image_folder))[:800]
             self.list_mask = sorted(os.listdir(self.mask_folder))[:800]
@@ -66,11 +48,17 @@ class ClothesDataset(Dataset):
         if len(np.shape(image)) != 3 or np.shape(image)[2] != 3:
             image = image.convert("RGB")
         image = image.resize(DATA_IMAGE_SIZE_SEGMENTATION, Image.LANCZOS)
-        image = np.asarray(image)
-        image = self.transform(image)
 
         mask = Image.open(os.path.join(self.mask_folder, self.list_mask[idx]))
         mask = mask.resize(DATA_IMAGE_SIZE_SEGMENTATION, Image.NEAREST)
-        mask = torch.clamp(torch.from_numpy(np.array(mask)), 0, 1).long()
 
+        if self.phase == "train":
+            result = augmentations(image=image, mask=mask)
+            image = result["image"]
+            mask = result["mask"]
+        else:
+            image = np.array(image, np.float32)
+
+        image = self.transform(image)
+        mask = torch.clamp(torch.from_numpy(np.array(mask)), 0, 1).long()
         return (image, mask)

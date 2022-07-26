@@ -1,11 +1,9 @@
 import os
-from functools import partial
 from PIL import Image
 import numpy as np
 import torch
 from torch.nn import functional as F
 from torch.utils.data import Dataset
-from torchvision import transforms
 
 from data.abstract_data import AbstractDataModule
 from data.augmentation import augmentations
@@ -19,25 +17,6 @@ class DetectionDataModule(AbstractDataModule):
             "/kaggle/working/data/afo-aerial-dataset-of-floating-objects/PART_1/PART_1"
         )
         self.image_size = DATA_IMAGE_SIZE_DETECTION
-
-    @staticmethod
-    def augment(image, bboxes, augmentation_pipeline):
-        result = augmentation_pipeline(image=image, bboxes=bboxes)
-        return result["image"], result["bboxes"]
-
-    def transform(self, phase):
-        mean = (0.40789655, 0.44719303, 0.47026116)
-        std = (0.2886383, 0.27408165, 0.27809834)
-        return transforms.Compose(
-            (
-                [
-                    partial(self.augment, augmentation_pipeline=augmentations),
-                    transforms.ToPILImage(),
-                ]
-                if phase == "train"
-                else []
-            ).extend([transforms.ToTensor(), transforms.Normalize(mean, std)])
-        )
 
     def get_dataset(self, phase):
         image_dataset = YOLODataset(
@@ -55,6 +34,7 @@ class YOLODataset(Dataset):
     ):
         super().__init__()
         self.data_dir = data_dir
+        self.phase = phase
         with open(os.path.join(self.data_dir, f"{phase}.txt")) as file:
             self.annotation_lines = file.readlines()
         self.length = len(self.annotation_lines)
@@ -68,6 +48,13 @@ class YOLODataset(Dataset):
         index = index % self.length
 
         image, labels = self.load_image(index)
+        if self.phase == "train":
+            result = augmentations(image=image, bboxes=labels)
+            image = result["image"]
+            labels = result["bboxes"]
+            labels = np.array(labels, dtype=np.int32)
+        else:
+            image = np.array(image, np.float32)
         image = self.transform(image)
 
         if len(labels.shape) < 2:

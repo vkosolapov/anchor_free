@@ -12,8 +12,13 @@ class AbstractDataModule(LightningDataModule):
         self.num_workers = DATA_NUM_WORKERS
         self.batch_size = DATA_BATCH_SIZE
 
-    def transform(self, phase):
-        return transforms.Compose([])
+    @staticmethod
+    def transform():
+        mean = (0.485, 0.456, 0.406)
+        std = (0.229, 0.224, 0.225)
+        return transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize(mean, std)]
+        )
 
     def get_dataset(self, phase):
         return Dataset()
