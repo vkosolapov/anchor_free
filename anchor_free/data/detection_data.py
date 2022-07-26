@@ -20,10 +20,7 @@ class DetectionDataModule(AbstractDataModule):
 
     def get_dataset(self, phase):
         image_dataset = YOLODataset(
-            self.data_dir,
-            phase,
-            image_size=self.image_size,
-            transform=self.transform(phase),
+            self.data_dir, phase, image_size=self.image_size, transform=self.transform,
         )
         return image_dataset
 

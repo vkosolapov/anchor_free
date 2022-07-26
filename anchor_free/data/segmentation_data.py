@@ -18,9 +18,7 @@ class SegmentationDataModule(AbstractDataModule):
         self.data_dir = "../input/people-clothing-segmentation"
 
     def get_dataset(self, phase):
-        image_dataset = ClothesDataset(
-            self.data_dir, phase, transform=self.transform(phase)
-        )
+        image_dataset = ClothesDataset(self.data_dir, phase, transform=self.transform)
         return image_dataset
 
 
@@ -59,6 +57,6 @@ class ClothesDataset(Dataset):
         else:
             image = np.array(image, np.float32)
 
-        image = self.transform(image)
+        image = self.transform()
         mask = torch.clamp(torch.from_numpy(np.array(mask)), 0, 1).long()
         return (image, mask)
