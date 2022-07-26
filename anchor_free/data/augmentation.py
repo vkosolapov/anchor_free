@@ -41,7 +41,7 @@ augmentations = A.Compose(
                 A.GridDistortion(),
                 A.OpticalDistortion(distort_limit=2, shift_limit=0.5),
             ],
-            p=0.0,
+            p=0.1,
         ),
         A.OneOf(
             [A.GaussNoise(p=0.5), A.Blur(p=0.5), CoarseDropout(max_holes=5)], p=0.0
