@@ -45,14 +45,12 @@ class YOLODataset(Dataset):
         index = index % self.length
 
         image, labels = self.load_image(index)
+        image = np.array(image, np.float32)
         if self.phase == "train":
             result = augmentations(image=image, bboxes=labels)
             image = result["image"]
             labels = result["bboxes"]
             labels = np.array(labels, dtype=np.int32)
-        else:
-            image = np.array(image, np.float32)
-        image = self.transform(image)
 
         if len(labels.shape) < 2:
             labels = np.expand_dims(labels, axis=1)

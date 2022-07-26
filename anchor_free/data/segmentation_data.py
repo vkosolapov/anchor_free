@@ -1,11 +1,8 @@
 import os
-from functools import partial
-import cv2
 from PIL import Image
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-from torchvision import transforms
 
 from data.abstract_data import AbstractDataModule
 from data.augmentation import augmentations
@@ -46,16 +43,16 @@ class ClothesDataset(Dataset):
         if len(np.shape(image)) != 3 or np.shape(image)[2] != 3:
             image = image.convert("RGB")
         image = image.resize(DATA_IMAGE_SIZE_SEGMENTATION, Image.LANCZOS)
+        image = np.array(image, np.float32)
 
         mask = Image.open(os.path.join(self.mask_folder, self.list_mask[idx]))
         mask = mask.resize(DATA_IMAGE_SIZE_SEGMENTATION, Image.NEAREST)
+        mask = np.array(mask, np.int32)
 
         if self.phase == "train":
             result = augmentations(image=image, mask=mask)
             image = result["image"]
             mask = result["mask"]
-        else:
-            image = np.array(image, np.float32)
 
         image = self.transform(image)
         mask = torch.clamp(torch.from_numpy(np.array(mask)), 0, 1).long()
