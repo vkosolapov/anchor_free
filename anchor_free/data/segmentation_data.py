@@ -57,6 +57,6 @@ class ClothesDataset(Dataset):
         else:
             image = np.array(image, np.float32)
 
-        image = self.transform()
+        image = self.transform(image)
         mask = torch.clamp(torch.from_numpy(np.array(mask)), 0, 1).long()
         return (image, mask)
