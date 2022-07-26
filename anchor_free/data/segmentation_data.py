@@ -56,6 +56,6 @@ class ClothesDataset(Dataset):
 
         mask = Image.open(os.path.join(self.mask_folder, self.list_mask[idx]))
         mask = mask.resize(DATA_IMAGE_SIZE_SEGMENTATION, Image.NEAREST)
-        mask = torch.from_numpy(np.array(mask)).long()
+        mask = torch.clamp(torch.from_numpy(np.array(mask)), 0, 1).long()
 
         return (image, mask)

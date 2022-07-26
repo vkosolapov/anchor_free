@@ -13,7 +13,7 @@ from consts import *
 class SegmentationModel(AbstractModel):
     def __init__(self):
         super().__init__()
-        self.num_classes = 59
+        self.num_classes = 2  # 59
         backbone_args = dict(
             block=Bottleneck,
             layers=[2, 2, 2, 2],
