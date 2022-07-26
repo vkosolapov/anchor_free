@@ -31,7 +31,7 @@ augmentations = A.Compose(
                     hue_shift_limit=20, sat_shift_limit=20, val_shift_limit=20,
                 ),
             ],
-            p=0.0,
+            p=1.0,
         ),
         A.OneOf(
             [
