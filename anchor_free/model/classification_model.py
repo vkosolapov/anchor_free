@@ -5,6 +5,7 @@ from timm.models.resnet import _create_resnet, Bottleneck
 from torchmetrics import Accuracy, AUROC
 
 from model.abstract_model import AbstractModel
+from model.loss import LabelSmoothingFocalLoss
 from consts import *
 
 
@@ -24,6 +25,9 @@ class ClassificationModel(AbstractModel):
             num_classes=self.num_classes,
         )
         self.model = _create_resnet("resnet50", False, **model_args)
+        self.classification_loss = LabelSmoothingFocalLoss(
+            self.num_classes, need_one_hot=True, gamma=2, alpha=0.25, smoothing=0.1
+        )
         self.metrics = {
             "train": {
                 "accuracy": Accuracy(num_classes=self.num_classes),
@@ -56,7 +60,7 @@ class ClassificationModel(AbstractModel):
     def step(self, batch, batch_idx, phase):
         x, y = batch
         logits = self.forward(x)
-        loss = F.cross_entropy(logits, y.long(), label_smoothing=0.1)
+        loss = self.classification_loss(logits, y.long())
         self.log(
             f"loss/{phase}",
             loss,

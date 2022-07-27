@@ -2,9 +2,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.ops import sigmoid_focal_loss, nms
+from torchvision.ops import nms
 
-from model.loss import RegressionLossWithMask
+from model.loss import LabelSmoothingFocalLoss, RegressionLossWithMask
 from consts import *
 
 
@@ -31,6 +31,11 @@ class CenterNet(nn.Module):
         )
         self.offset_head = self._make_head(input_channels=32, output_channels=2)
         self.size_head = self._make_head(input_channels=32, output_channels=2)
+
+        self.classification_loss = LabelSmoothingFocalLoss(
+            num_classes, need_one_hot=False, gamma=2, alpha=0.25, smoothing=0.0
+        )
+        self.regression_loss = RegressionLossWithMask(smooth=True)
 
         self.initialize()
 
@@ -91,14 +96,13 @@ class CenterNet(nn.Module):
             targets["offset"] = targets["offset"].to(device)
             targets["size"] = targets["size"].to(device)
             targets["mask"] = targets["mask"].to(device)
-        loss_cls = sigmoid_focal_loss(
-            logits["cls"], targets["cls"], alpha=0.25, gamma=2.0, reduction="mean"
-        )
-        regression_loss = RegressionLossWithMask(smooth=True)
-        loss_offset = regression_loss(
+        loss_cls = self.classification_loss(logits["cls"], targets["cls"])
+        loss_offset = self.regression_loss(
             logits["offset"], targets["offset"], targets["mask"]
         )
-        loss_size = regression_loss(logits["size"], targets["size"], targets["mask"])
+        loss_size = self.regression_loss(
+            logits["size"], targets["size"], targets["mask"]
+        )
         loss = loss_cls * 1.0 + loss_offset * 0.1 + loss_size * 0.1
         return (
             loss,

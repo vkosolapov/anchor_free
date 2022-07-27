@@ -2,8 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torchvision.ops import sigmoid_focal_loss
-
+from model.loss import LabelSmoothingFocalLoss
 from consts import *
 
 
@@ -18,6 +17,10 @@ class UNet(nn.Module):
         self.up3 = Up(channels[2], channels[1], bilinear)
         self.up4 = Up(channels[1], channels[0], bilinear)
         self.outc = OutConv(channels[0], num_classes)
+
+        self.classification_loss = LabelSmoothingFocalLoss(
+            num_classes, need_one_hot=True, gamma=2, alpha=0.25, smoothing=0.1
+        )
 
         self.initialize()
 
@@ -42,7 +45,7 @@ class UNet(nn.Module):
 
     def loss(self, logits, mask):
         mask = F.one_hot(mask, self.num_classes).permute(0, 3, 1, 2).float()
-        return sigmoid_focal_loss(logits, mask, alpha=0.25, gamma=2.0, reduction="mean")
+        return self.classification_loss(logits, mask)
 
 
 class Up(nn.Module):
