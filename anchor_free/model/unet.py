@@ -50,7 +50,7 @@ class UNet(nn.Module):
 
     def loss(self, logits, mask):
         loss_cls = self.classification_loss(logits, mask)
-        loss_iou = self.iou_loss(logits, mask)
+        loss_iou = self.iou_loss(logits, F.one_hot(mask).permute((0, 3, 1, 2)))
         loss = loss_cls * 1.0 + loss_iou * 0.1
         return (
             loss,
