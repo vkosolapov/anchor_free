@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from segmentation_models_pytorch.losses import DiceLoss
+
 from model.loss import LabelSmoothingFocalLoss
 from consts import *
 
@@ -20,6 +22,9 @@ class UNet(nn.Module):
 
         self.classification_loss = LabelSmoothingFocalLoss(
             num_classes, need_one_hot=True, gamma=2, alpha=0.25, smoothing=0.1
+        )
+        self.iou_loss = DiceLoss(
+            mode="binary", log_loss=True, from_logits=True, smooth=0.1
         )
 
         self.initialize()
@@ -44,7 +49,13 @@ class UNet(nn.Module):
         return logits
 
     def loss(self, logits, mask):
-        return self.classification_loss(logits, mask)
+        loss_cls = self.classification_loss(logits, mask)
+        loss_iou = self.iou_loss(logits, mask)
+        loss = loss_cls * 1.0 + loss_iou * 0.1
+        return (
+            loss,
+            {"loss_cls": loss_cls, "loss_iou": loss_iou},
+        )
 
 
 class Up(nn.Module):

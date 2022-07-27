@@ -79,7 +79,7 @@ class SegmentationModel(AbstractModel):
     def step(self, batch, batch_idx, phase):
         x, y = batch
         logits = self.forward(x)
-        loss = self.head.loss(logits, y)
+        loss, separate_losses = self.head.loss(logits, y)
         self.log(
             f"loss/{phase}",
             loss,
@@ -88,6 +88,15 @@ class SegmentationModel(AbstractModel):
             on_step=False,
             on_epoch=True,
         )
+        for sep_loss in separate_losses:
+            self.log(
+                f"{sep_loss}/{phase}",
+                separate_losses[sep_loss],
+                prog_bar=False,
+                logger=True,
+                on_step=False,
+                on_epoch=True,
+            )
 
         for metric in self.metrics[phase]:
             self.metrics[phase][metric](torch.sigmoid(logits), y)
