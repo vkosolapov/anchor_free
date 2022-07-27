@@ -56,7 +56,7 @@ class ClassificationModel(AbstractModel):
     def step(self, batch, batch_idx, phase):
         x, y = batch
         logits = self.forward(x)
-        loss = F.cross_entropy(logits, y.long())
+        loss = F.cross_entropy(logits, y.long(), label_smoothing=0.1)
         self.log(
             f"loss/{phase}",
             loss,
