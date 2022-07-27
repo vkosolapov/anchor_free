@@ -24,7 +24,7 @@ class UNet(nn.Module):
             num_classes, need_one_hot=True, gamma=2, alpha=0.25, smoothing=0.1
         )
         self.iou_loss = DiceLoss(
-            mode="binary", log_loss=True, from_logits=True, smooth=0.1
+            mode="multiclass", log_loss=True, from_logits=True, smooth=0.1
         )
 
         self.initialize()
