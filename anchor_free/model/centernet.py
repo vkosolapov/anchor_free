@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.ops import nms
 
-from model.loss import LabelSmoothingFocalLoss, RegressionLossWithMask
+from model.loss import LabelSmoothingFocalLoss, RegressionLossWithMask, IoULossWithMask
 from consts import *
 
 
@@ -36,6 +36,7 @@ class CenterNet(nn.Module):
             num_classes, need_one_hot=False, gamma=2, alpha=0.25, smoothing=0.0
         )
         self.regression_loss = RegressionLossWithMask(smooth=True)
+        self.bbox_loss = IoULossWithMask(CIoU=True)
 
         self.initialize()
 
@@ -103,11 +104,34 @@ class CenterNet(nn.Module):
         loss_size = self.regression_loss(
             logits["size"], targets["size"], targets["mask"]
         )
-        loss = loss_cls * 1.0 + loss_offset * 0.1 + loss_size * 0.1
+        pred_coord = self.offset_to_coord(logits["offset"])
+        labels_coord = self.offset_to_coord(targets["offset"])
+        loss_bbox = self.bbox_loss(
+            torch.cat([pred_coord, logits["size"]], dim=1),
+            torch.cat([labels_coord, targets["size"]], dim=1),
+            targets["mask"],
+        )
+        loss = loss_cls * 1.0 + loss_offset * 0.0 + loss_size * 0.0 + loss_bbox * 0.1
         return (
             loss,
-            {"loss_cls": loss_cls, "loss_offset": loss_offset, "loss_size": loss_size,},
+            {
+                "loss_cls": loss_cls,
+                "loss_offset": loss_offset,
+                "loss_size": loss_size,
+                "loss_bbox": loss_bbox,
+            },
         )
+
+    def offset_to_coord(self, pred):
+        b, c, output_w, output_h = pred.shape
+        xv, yv = torch.meshgrid(torch.arange(0, output_w), torch.arange(0, output_h))
+        coords = torch.stack([xv, yv]).repeat(b, 1, 1, 1)
+        if pred.is_cuda:
+            device = pred.get_device()
+            coords = coords.to(device)
+        else:
+            coords = coords.cpu()
+        return pred + coords
 
     def preprocess_targets(self, labels, labels_count):
         batch_size = labels.size()[0]

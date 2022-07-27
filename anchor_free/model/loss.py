@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -95,3 +96,69 @@ class RegressionLossWithMask(nn.Module):
         loss = loss / (expand_mask.sum() + 1e-4)
         return loss
 
+
+class IoULossWithMask(nn.Module):
+    def __init__(self, GIoU=False, DIoU=False, CIoU=False):
+        super().__init__()
+        self.GIoU = GIoU
+        self.DIoU = DIoU
+        self.CIoU = CIoU
+
+    def forward(self, pred, target, mask):
+        pred = pred.permute(0, 2, 3, 1)
+        target = target.permute(0, 2, 3, 1)
+        expand_mask = torch.unsqueeze(mask, -1).repeat(1, 1, 1, 4)
+        loss = bbox_iou(pred * expand_mask, target * expand_mask, CIoU=True)
+        loss = loss.sum() / (expand_mask.sum() + 1e-4)
+        return 1 - loss
+
+
+def bbox_iou(box1, box2, x1y1x2y2=False, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
+    if x1y1x2y2:
+        b1_x1, b1_y1, b1_x2, b1_y2 = (
+            box1[..., 0],
+            box1[..., 1],
+            box1[..., 2],
+            box1[..., 3],
+        )
+        b2_x1, b2_y1, b2_x2, b2_y2 = (
+            box2[..., 0],
+            box2[..., 1],
+            box2[..., 2],
+            box2[..., 3],
+        )
+    else:
+        b1_x1, b1_x2 = box1[..., 0] - box1[..., 2] / 2, box1[..., 0] + box1[..., 2] / 2
+        b1_y1, b1_y2 = box1[..., 1] - box1[..., 3] / 2, box1[..., 1] + box1[..., 3] / 2
+        b2_x1, b2_x2 = box2[..., 0] - box2[..., 2] / 2, box2[..., 0] + box2[..., 2] / 2
+        b2_y1, b2_y2 = box2[..., 1] - box2[..., 3] / 2, box2[..., 1] + box2[..., 3] / 2
+
+    inter = (torch.min(b1_x2, b2_x2) - torch.max(b1_x1, b2_x1)).clamp(0) * (
+        torch.min(b1_y2, b2_y2) - torch.max(b1_y1, b2_y1)
+    ).clamp(0)
+
+    w1, h1 = b1_x2 - b1_x1, b1_y2 - b1_y1 + eps
+    w2, h2 = b2_x2 - b2_x1, b2_y2 - b2_y1 + eps
+    union = w1 * h1 + w2 * h2 - inter + eps
+
+    iou = inter / union
+    if CIoU or DIoU or GIoU:
+        cw = torch.max(b1_x2, b2_x2) - torch.min(b1_x1, b2_x1)
+        ch = torch.max(b1_y2, b2_y2) - torch.min(b1_y1, b2_y1)
+        if CIoU or DIoU:
+            c2 = cw ** 2 + ch ** 2 + eps
+            rho2 = (
+                (b2_x1 + b2_x2 - b1_x1 - b1_x2) ** 2
+                + (b2_y1 + b2_y2 - b1_y1 - b1_y2) ** 2
+            ) / 4
+            if CIoU:
+                v = (4 / math.pi ** 2) * torch.pow(
+                    torch.atan(w2 / h2) - torch.atan(w1 / h1), 2
+                )
+                with torch.no_grad():
+                    alpha = v / (v - iou + (1 + eps))
+                return iou - (rho2 / c2 + v * alpha)
+            return iou - rho2 / c2
+        c_area = cw * ch + eps
+        return iou - (c_area - union) / c_area
+    return iou
