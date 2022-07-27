@@ -53,12 +53,9 @@ class LabelSmoothingFocalLoss(nn.Module):
                     .scatter_(1, label.unsqueeze(1), lb_pos)
                     .detach()
                 )
-                if len(lb_one_hot.size()) == 4:
-                    lb_one_hot = lb_one_hot.permute((0, 3, 1, 2))
             else:
                 lb_one_hot = label
         logs = F.log_softmax(logits, dim=1)
-        print(difficulty_level.size(), logs.size(), lb_one_hot.size())
         loss = -torch.sum(difficulty_level * logs * lb_one_hot, dim=1)
         if self._ignore_index is not None:
             loss[ignore] = 0
