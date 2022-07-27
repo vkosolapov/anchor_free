@@ -51,7 +51,7 @@ class UNet(nn.Module):
     def loss(self, logits, mask):
         loss_cls = self.classification_loss(logits, mask)
         loss_iou = self.iou_loss(logits, mask)
-        loss = loss_cls * 1.0 + loss_iou * 0.1
+        loss = loss_cls * 1.0 + loss_iou * 1.0
         return (
             loss,
             {"loss_cls": loss_cls, "loss_iou": loss_iou},
