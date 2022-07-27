@@ -44,7 +44,6 @@ class UNet(nn.Module):
         return logits
 
     def loss(self, logits, mask):
-        mask = F.one_hot(mask, self.num_classes).permute(0, 3, 1, 2).float()
         return self.classification_loss(logits, mask)
 
 

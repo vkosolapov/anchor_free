@@ -175,7 +175,7 @@ class CenterNet(nn.Module):
         b, c, output_w, output_h = pred_cls.shape
         detects = []
         for batch in range(b):
-            heat_map = torch.sigmoid(pred_cls[batch])
+            heat_map = F.softmax(pred_cls[batch], dim=0)
             heat_map = heat_map.permute(1, 2, 0).view([-1, c])
             pred_off = pred_offset[batch].permute(1, 2, 0).view([-1, 2])
             pred_wh = pred_size[batch].permute(1, 2, 0).view([-1, 2])

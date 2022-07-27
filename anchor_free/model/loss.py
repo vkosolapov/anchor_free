@@ -52,9 +52,11 @@ class LabelSmoothingFocalLoss(nn.Module):
                     .scatter_(1, label.unsqueeze(1), lb_pos)
                     .detach()
                 )
+                if len(lb_one_hot.size()) == 4:
+                    lb_one_hot = lb_one_hot.permute((0, 3, 1, 2))
             else:
                 lb_one_hot = label
-        logs = F.log_softmax(logits, dim=len(logits.size()) - 1)
+        logs = F.log_softmax(logits, dim=1)
         loss = -torch.sum(difficulty_level * logs * lb_one_hot, dim=1)
         if self._ignore_index is not None:
             loss[ignore] = 0
@@ -65,11 +67,13 @@ class LabelSmoothingFocalLoss(nn.Module):
             one_hot_key = torch.nn.functional.one_hot(
                 label, num_classes=self._num_classes
             )
+            if len(one_hot_key.size()) == 4:
+                one_hot_key = one_hot_key.permute((0, 3, 1, 2))
         else:
             one_hot_key = label
         if one_hot_key.device != logits.device:
             one_hot_key = one_hot_key.to(logits.device)
-        pt = one_hot_key * F.softmax(logits, dim=len(logits.size()) - 1)
+        pt = one_hot_key * F.softmax(logits, dim=1)
         difficulty_level = torch.pow(1 - pt, self._gamma)
         return difficulty_level
 
