@@ -7,6 +7,7 @@ from torchmetrics import JaccardIndex
 from model.abstract_model import AbstractModel
 from model.backbone import TIMMBackbone
 from model.unet import UNet
+from optim.ranger import Ranger
 from consts import *
 
 
@@ -67,7 +68,7 @@ class SegmentationModel(AbstractModel):
         self.test_jaccard = self.metrics["test"]["jaccard"]
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters())
+        optimizer = Ranger(self.model.parameters(), lr=0.01, weight_decay=0.0001)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
         return [optimizer], [scheduler]
 

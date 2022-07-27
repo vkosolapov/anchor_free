@@ -6,6 +6,7 @@ from torchmetrics import Accuracy, AUROC
 
 from model.abstract_model import AbstractModel
 from model.loss import LabelSmoothingFocalLoss
+from optim.ranger import Ranger
 from consts import *
 
 
@@ -50,7 +51,7 @@ class ClassificationModel(AbstractModel):
         self.test_rocauc = self.metrics["test"]["rocauc"]
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.model.parameters())
+        optimizer = Ranger(self.model.parameters(), lr=0.01, weight_decay=0.0001)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
         return [optimizer], [scheduler]
 

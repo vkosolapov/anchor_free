@@ -7,6 +7,7 @@ from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from model.abstract_model import AbstractModel
 from model.backbone import TIMMBackbone
 from model.centernet import CenterNet
+from optim.ranger import Ranger
 from consts import *
 
 
@@ -76,7 +77,7 @@ class DetectionModel(AbstractModel):
         self.test_map_05_095 = self.metrics["test"]["map_05_095"]
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters())
+        optimizer = Ranger(self.model.parameters(), lr=0.01, weight_decay=0.0001)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
         return [optimizer], [scheduler]
 
