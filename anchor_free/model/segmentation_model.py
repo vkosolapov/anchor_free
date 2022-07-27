@@ -68,7 +68,7 @@ class SegmentationModel(AbstractModel):
         self.test_jaccard = self.metrics["test"]["jaccard"]
 
     def configure_optimizers(self):
-        optimizer = Ranger(self.model.parameters(), lr=0.01, weight_decay=0.0001)
+        optimizer = Ranger(self.parameters(), lr=0.01, weight_decay=0.0001)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
         return [optimizer], [scheduler]
 

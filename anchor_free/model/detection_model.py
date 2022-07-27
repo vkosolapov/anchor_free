@@ -77,7 +77,7 @@ class DetectionModel(AbstractModel):
         self.test_map_05_095 = self.metrics["test"]["map_05_095"]
 
     def configure_optimizers(self):
-        optimizer = Ranger(self.model.parameters(), lr=0.01, weight_decay=0.0001)
+        optimizer = Ranger(self.parameters(), lr=0.01, weight_decay=0.0001)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
         return [optimizer], [scheduler]
 
