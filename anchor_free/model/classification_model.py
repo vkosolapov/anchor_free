@@ -21,6 +21,7 @@ class ClassificationModel(AbstractModel):
             cardinality=32,
             base_width=4,
             block_args=dict(attn_layer="eca"),
+            act_layer=torch.nn.Mish,
             stem_width=32,
             stem_type="deep",
             avg_down=True,

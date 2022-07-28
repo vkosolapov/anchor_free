@@ -9,15 +9,15 @@ from consts import *
 
 
 class UNet(nn.Module):
-    def __init__(self, num_classes, bilinear, channels):
+    def __init__(self, num_classes, bilinear, channels, act_layer=nn.ReLU):
         super(UNet, self).__init__()
         self.num_classes = num_classes
         self.bilinear = bilinear
 
-        self.up1 = Up(channels[4], channels[3], bilinear)
-        self.up2 = Up(channels[3], channels[2], bilinear)
-        self.up3 = Up(channels[2], channels[1], bilinear)
-        self.up4 = Up(channels[1], channels[0], bilinear)
+        self.up1 = Up(channels[4], channels[3], bilinear, act_layer=act_layer)
+        self.up2 = Up(channels[3], channels[2], bilinear, act_layer=act_layer)
+        self.up3 = Up(channels[2], channels[1], bilinear, act_layer=act_layer)
+        self.up4 = Up(channels[1], channels[0], bilinear, act_layer=act_layer)
         self.outc = OutConv(channels[0], num_classes)
 
         self.classification_loss = LabelSmoothingFocalLoss(
@@ -59,18 +59,23 @@ class UNet(nn.Module):
 
 
 class Up(nn.Module):
-    def __init__(self, in_channels, out_channels, bilinear=True):
+    def __init__(self, in_channels, out_channels, bilinear=True, act_layer=nn.ReLU):
         super().__init__()
         if bilinear:
             self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
             self.conv = DoubleConv(
-                in_channels + out_channels, out_channels, in_channels // 2
+                in_channels + out_channels,
+                out_channels,
+                in_channels // 2,
+                act_layer=act_layer,
             )
         else:
             self.up = nn.ConvTranspose2d(
                 in_channels, in_channels // 2, kernel_size=2, stride=2
             )
-            self.conv = DoubleConv(in_channels // 2 + out_channels, out_channels)
+            self.conv = DoubleConv(
+                in_channels // 2 + out_channels, out_channels, act_layer=act_layer
+            )
 
     def forward(self, x1, x2):
         x1 = self.up(x1)
@@ -90,17 +95,17 @@ class OutConv(nn.Module):
 
 
 class DoubleConv(nn.Module):
-    def __init__(self, in_channels, out_channels, mid_channels=None):
+    def __init__(self, in_channels, out_channels, mid_channels=None, act_layer=nn.ReLU):
         super().__init__()
         if not mid_channels:
             mid_channels = out_channels
         self.double_conv = nn.Sequential(
             nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(mid_channels),
-            nn.ReLU(inplace=True),
+            act_layer(inplace=True),
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
+            act_layer(inplace=True),
         )
 
     def forward(self, x):

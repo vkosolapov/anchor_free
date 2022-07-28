@@ -1,7 +1,6 @@
 import torch
 
 from timm.models import create_model
-from timm.models.resnet import _create_resnet, Bottleneck
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
 from model.abstract_model import AbstractModel
@@ -16,18 +15,6 @@ class DetectionModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self.num_classes = 6
-        backbone_args = dict(
-            block=Bottleneck,
-            layers=[2, 2, 2, 2],
-            cardinality=32,
-            base_width=4,
-            block_args=dict(attn_layer="eca"),
-            stem_width=32,
-            stem_type="deep",
-            avg_down=True,
-            num_classes=self.num_classes,
-        )
-        # self.backbone = _create_resnet("resnet50", False, **backbone_args)
         self.backbone = create_model(
             "resnet18",
             pretrained=True,
@@ -36,7 +23,11 @@ class DetectionModel(AbstractModel):
         )
         self.backbone = TIMMBackbone(self.backbone, multi_output=False)
         channels = self.backbone.get_output_channels()
-        self.head = CenterNet(num_classes=self.num_classes, input_channels=channels)
+        self.head = CenterNet(
+            num_classes=self.num_classes,
+            input_channels=channels,
+            act_layer=torch.nn.Mish,
+        )
         self.metrics = {
             "train": {},
             "val": {

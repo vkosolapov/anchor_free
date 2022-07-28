@@ -1,7 +1,6 @@
 import torch
 
 from timm.models import create_model
-from timm.models.resnet import _create_resnet, Bottleneck
 from torchmetrics import JaccardIndex
 
 from model.abstract_model import AbstractModel
@@ -16,19 +15,6 @@ class SegmentationModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self.num_classes = 2  # 59
-        backbone_args = dict(
-            block=Bottleneck,
-            layers=[2, 2, 2, 2],
-            # cardinality=32,
-            # base_width=4,
-            # block_args=dict(attn_layer="eca"),
-            stem_width=32,
-            stem_type="deep",
-            avg_down=True,
-            num_classes=self.num_classes,
-            features_only=True,
-        )
-        # self.backbone = _create_resnet("resnet50", False, **backbone_args)
         self.backbone = create_model(
             "resnet18",
             pretrained=True,
@@ -37,7 +23,12 @@ class SegmentationModel(AbstractModel):
         )
         self.backbone = TIMMBackbone(self.backbone, multi_output=True)
         channels = self.backbone.get_output_channels()
-        self.head = UNet(num_classes=self.num_classes, bilinear=True, channels=channels)
+        self.head = UNet(
+            num_classes=self.num_classes,
+            bilinear=True,
+            channels=channels,
+            act_layer=torch.nn.Mish,
+        )
         self.metrics = {
             "train": {
                 "jaccard": JaccardIndex(
