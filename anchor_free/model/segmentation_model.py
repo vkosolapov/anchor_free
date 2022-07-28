@@ -8,6 +8,7 @@ from model.abstract_model import AbstractModel
 from model.backbone import TIMMBackbone
 from model.unet import UNet
 from optim.ranger import Ranger
+from optim.cyclic_cosine import CyclicCosineLR
 from consts import *
 
 
@@ -69,7 +70,17 @@ class SegmentationModel(AbstractModel):
 
     def configure_optimizers(self):
         optimizer = Ranger(self.parameters(), lr=0.01, weight_decay=0.0001)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
+        scheduler = CyclicCosineLR(
+            optimizer,
+            warmup_epochs=5,
+            warmup_start_lr=0.005,
+            warmup_linear=False,
+            init_decay_epochs=5,
+            min_decay_lr=0.001,
+            restart_lr=0.01,
+            restart_interval=10,
+            # restart_interval_multiplier=1.2,
+        )
         return [optimizer], [scheduler]
 
     def forward(self, x):
