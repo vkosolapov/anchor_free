@@ -1,11 +1,13 @@
 import torch
 
+from timm.models.resnet import _create_resnet, Bottleneck
 from timm.models import create_model
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
 from model.abstract_model import AbstractModel
 from model.backbone import TIMMBackbone
 from model.centernet import CenterNet
+from model.norm import CBatchNorm2d
 from optim.ranger import Ranger
 from optim.cyclic_cosine import CyclicCosineLR
 from consts import *
@@ -15,17 +17,33 @@ class DetectionModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self.num_classes = 6
-        self.backbone = create_model(
-            "resnet18",
-            pretrained=True,
+        model_args = dict(
+            block=Bottleneck,
+            layers=[2, 2, 2, 2],
+            cardinality=32,
+            base_width=4,
+            block_args=dict(attn_layer="eca"),
+            norm_layer=CBatchNorm2d,
+            act_layer=torch.nn.Mish,
+            stem_width=32,
+            stem_type="deep",
+            avg_down=True,
             features_only=False,
             num_classes=self.num_classes,
         )
+        self.backbone = _create_resnet("resnet18", False, **model_args)
+        # self.backbone = create_model(
+        #    "resnet18",
+        #    pretrained=True,
+        #    features_only=False,
+        #    num_classes=self.num_classes,
+        # )
         self.backbone = TIMMBackbone(self.backbone, multi_output=False)
         channels = self.backbone.get_output_channels()
         self.head = CenterNet(
             num_classes=self.num_classes,
             input_channels=channels,
+            norm_layer=CBatchNorm2d,
             act_layer=torch.nn.Mish,
         )
         self.metrics = {

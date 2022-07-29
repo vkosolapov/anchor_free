@@ -5,6 +5,7 @@ from timm.models.resnet import _create_resnet, Bottleneck
 from torchmetrics import Accuracy, AUROC
 
 from model.abstract_model import AbstractModel
+from model.norm import CBatchNorm2d
 from model.loss import LabelSmoothingFocalLoss
 from optim.ranger import Ranger
 from optim.cyclic_cosine import CyclicCosineLR
@@ -21,13 +22,14 @@ class ClassificationModel(AbstractModel):
             cardinality=32,
             base_width=4,
             block_args=dict(attn_layer="eca"),
+            norm_layer=CBatchNorm2d,
             act_layer=torch.nn.Mish,
             stem_width=32,
             stem_type="deep",
             avg_down=True,
             num_classes=self.num_classes,
         )
-        self.model = _create_resnet("resnet50", False, **model_args)
+        self.model = _create_resnet("resnet18", False, **model_args)
         self.classification_loss = LabelSmoothingFocalLoss(
             self.num_classes, need_one_hot=True, gamma=2, alpha=0.25, smoothing=0.1
         )
