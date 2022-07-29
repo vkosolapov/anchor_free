@@ -1,7 +1,10 @@
 import torch
+import torch.nn as nn
 from torch.nn import functional as F
 
 from pytorch_lightning import LightningModule
+
+from model.norm import CBatchNorm2d
 
 
 class AbstractModel(LightningModule):
@@ -13,6 +16,14 @@ class AbstractModel(LightningModule):
             "val": {},
             "test": {},
         }
+
+    def configure_model(self):
+        prev_module = None
+        for module in self.modules():
+            if isinstance(module, nn.Conv2d) or isinstance(module, nn.ConvTranspose2d):
+                prev_module = module
+            if isinstance(module, CBatchNorm2d):
+                module.prev_module_weight = prev_module.weight
 
     def configure_optimizers(self):
         optimizer = torch.optim.Optimizer(self.model.parameters)
