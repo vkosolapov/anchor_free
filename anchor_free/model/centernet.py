@@ -1,8 +1,12 @@
+from functools import partial
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.ops import nms
+
+from timm.models.layers.drop import DropBlock2d, DropPath
 
 from model.loss import LabelSmoothingFocalLoss, RegressionLossWithMask, IoULossWithMask
 from consts import *
@@ -10,7 +14,13 @@ from consts import *
 
 class CenterNet(nn.Module):
     def __init__(
-        self, num_classes, input_channels, act_layer=nn.ReLU, norm_layer=nn.BatchNorm2d
+        self,
+        num_classes,
+        input_channels,
+        act_layer=nn.ReLU,
+        norm_layer=nn.BatchNorm2d,
+        drop_block_rate=0.0,
+        drop_path_rate=0.0,
     ):
         super().__init__()
         self.num_classes = num_classes
@@ -21,6 +31,18 @@ class CenterNet(nn.Module):
         self.channels = input_channels
         self.act_layer = act_layer
         self.norm_layer = norm_layer
+        self.drop_block = (
+            partial(
+                DropBlock2d, drop_prob=drop_block_rate, block_size=3, gamma_scale=1.0
+            )
+            if drop_block_rate > 0.0
+            else nn.Identity
+        )
+        self.drop_path = (
+            partial(DropPath, drop_prob=drop_path_rate)
+            if drop_path_rate > 0.0
+            else nn.Identity
+        )
 
         self.decoder = self._make_decoder(
             num_layers=3, channels_list=[128, 64, 32], kernels_list=[4, 4, 4],
@@ -57,7 +79,9 @@ class CenterNet(nn.Module):
                 )
             )
             layers.append(self.norm_layer(channels))
+            layers.append(self.drop_block())
             layers.append(self.act_layer(inplace=True))
+            layers.append(self.drop_path())
             self.channels = channels
         return nn.Sequential(*layers)
 

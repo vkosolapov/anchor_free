@@ -25,6 +25,8 @@ class SegmentationModel(AbstractModel):
             block_args=dict(attn_layer="eca"),
             norm_layer=CBatchNorm2d,
             act_layer=torch.nn.Mish,
+            drop_block_rate=0.01,
+            drop_path_rate=0.01,
             stem_width=32,
             stem_type="deep",
             avg_down=True,
@@ -46,6 +48,8 @@ class SegmentationModel(AbstractModel):
             channels=channels,
             norm_layer=CBatchNorm2d,
             act_layer=torch.nn.Mish,
+            drop_block_rate=0.01,
+            drop_path_rate=0.01,
         )
         self.metrics = {
             "train": {
