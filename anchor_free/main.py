@@ -20,7 +20,7 @@ def main():
         accelerator=TRAINER_ACCELERATOR,
         devices=TRAINER_DEVICES,
         precision=TRAINER_PRECISION,
-        deterministic=True,
+        deterministic=False,
         auto_scale_batch_size="binsearch" if TRAINER_ACCELERATOR != "cpu" else None,
         max_epochs=TRAINER_MAX_EPOCHS,
         check_val_every_n_epoch=1,
