@@ -1,37 +1,42 @@
 from pytorch_lightning import Trainer, seed_everything
-from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
+from pytorch_lightning.callbacks import (
+    GradientAccumulationScheduler,
+    StochasticWeightAveraging,
+    ModelCheckpoint,
+    EarlyStopping,
+)
 from pytorch_lightning.loggers.wandb import WandbLogger
-
-# import wandb
 
 from model.segmentation_model import SegmentationModel
 from data.segmentation_data import SegmentationDataModule
 from consts import *
 
 
-# wandb.init(
-#    project=TRAINER_EXPERIMENT_NAME,
-#    name=TRAINER_EXPERIMENT_VERSION,
-#    sync_tensorboard=True,
-# )
-
-
 def main():
-    seed_everything(seed=42)
+    seed_everything(seed=42, workers=True)
     model = SegmentationModel()
     data = SegmentationDataModule()
     trainer = Trainer(
         accelerator=TRAINER_ACCELERATOR,
         devices=TRAINER_DEVICES,
         precision=TRAINER_PRECISION,
-        deterministic=False,
+        deterministic=True,
+        auto_scale_batch_size="binsearch" if TRAINER_ACCELERATOR != "cpu" else None,
         max_epochs=TRAINER_MAX_EPOCHS,
         check_val_every_n_epoch=1,
         callbacks=[
+            GradientAccumulationScheduler(scheduling={0: 8, 10: 4, 20: 2, 30: 1}),
+            StochasticWeightAveraging(
+                swa_epoch_start=30,
+                annealing_epochs=5,
+                annealing_strategy="cos",
+                device="cuda",
+            ),
             ModelCheckpoint(
                 monitor=TRAINER_MONITOR,
                 mode=TRAINER_MONITOR_MODE,
                 save_top_k=1,
+                auto_insert_metric_name=True,
                 verbose=True,
             ),
             EarlyStopping(
