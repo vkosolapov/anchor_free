@@ -33,7 +33,11 @@ class CenterNet(nn.Module):
         self.norm_layer = norm_layer
         self.drop_block = (
             partial(
-                DropBlock2d, drop_prob=drop_block_rate, block_size=4, gamma_scale=1.0
+                DropBlock2d,
+                drop_prob=drop_block_rate,
+                block_size=3,
+                gamma_scale=1.0,
+                fast=False,
             )
             if drop_block_rate > 0.0
             else nn.Identity
