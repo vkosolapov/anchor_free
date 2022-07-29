@@ -37,7 +37,7 @@ class CenterNet(nn.Module):
                 drop_prob=drop_block_rate,
                 block_size=3,
                 gamma_scale=1.0,
-                fast=False,
+                fast=True,
             )
             if drop_block_rate > 0.0
             else nn.Identity

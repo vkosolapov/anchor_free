@@ -9,7 +9,7 @@ class TIMMBackbone(nn.Module):
         self.multi_output = multi_output
 
     def get_output_channels(self):
-        input = torch.zeros(size=(2, 3, 64, 64))
+        input = torch.zeros(size=(2, 3, 128, 128))
         if self.multi_output:
             output = self.backbone.forward(input)
         else:
