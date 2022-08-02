@@ -1,5 +1,5 @@
 from functools import partial
-
+import math
 import numpy as np
 import torch
 import torch.nn as nn
@@ -161,6 +161,48 @@ class CenterNet(nn.Module):
             coords = coords.cpu()
         return pred + coords
 
+    def gaussian_radius(self, det_size, min_overlap=0.7):
+        width, height = det_size
+        a1 = 1
+        b1 = width + height
+        c1 = width * height * (1 - min_overlap) / (1 + min_overlap)
+        sq1 = np.sqrt(b1 ** 2 - 4 * a1 * c1)
+        r1 = (b1 + sq1) / 2
+        a2 = 4
+        b2 = 2 * (width + height)
+        c2 = (1 - min_overlap) * width * height
+        sq2 = np.sqrt(b2 ** 2 - 4 * a2 * c2)
+        r2 = (b2 + sq2) / 2
+        a3 = 4 * min_overlap
+        b3 = -2 * min_overlap * (width + height)
+        c3 = (min_overlap - 1) * width * height
+        sq3 = np.sqrt(b3 ** 2 - 4 * a3 * c3)
+        r3 = (b3 + sq3) / 2
+        return min(r1, r2, r3)
+
+    def gaussian2D(self, shape, sigma=1):
+        m, n = [(ss - 1.0) / 2.0 for ss in shape]
+        x, y = np.ogrid[-m : m + 1, -n : n + 1]
+        h = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
+        h[h < np.finfo(h.dtype).eps * h.max()] = 0
+        return h
+
+    def draw_gaussian(self, heatmap, center, radius, k=1):
+        diameter = 2 * radius + 1
+        gaussian = self.gaussian2D((diameter, diameter), sigma=diameter / 6)
+        x, y = int(center[0]), int(center[1])
+        width, height = heatmap.shape[0:2]
+        left, right = min(x, radius), min(width - x, radius + 1)
+        top, bottom = min(y, radius), min(height - y, radius + 1)
+        masked_heatmap = heatmap[x - left : x + right, y - top : y + bottom]
+        masked_gaussian = gaussian[
+            radius - left : radius + right, radius - top : radius + bottom
+        ]
+        if min(masked_gaussian.shape) > 0 and min(masked_heatmap.shape) > 0:
+            masked_heatmap = np.maximum(masked_heatmap, masked_gaussian * k)
+            heatmap[x - left : x + right, y - top : y + bottom] = masked_heatmap
+        return heatmap
+
     def preprocess_targets(self, labels, labels_count):
         batch_size = labels.size()[0]
         target_cls = np.zeros(
@@ -188,16 +230,15 @@ class CenterNet(nn.Module):
                 cls_id = int(labels[i, j, -1])
                 w, h = box[2] - box[0], box[3] - box[1]
                 if w > 0 and h > 0:
-                    # radius = gaussian_radius((math.ceil(w), math.ceil(h)))
-                    # radius = max(0, int(radius))
+                    radius = self.gaussian_radius((math.ceil(w), math.ceil(h)))
+                    radius = max(0, int(radius))
                     center = np.array(
                         [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2], dtype=np.float32
                     )
                     center_int = center.astype(np.int32)
-                    # target_cls[:, :, :, cls_id] = draw_gaussian(
-                    #    target_cls[:, :, :, cls_id], center_int, radius
-                    # )
-                    target_cls[i, center_int[0], center_int[1], cls_id] = 1.0
+                    target_cls[:, :, :, cls_id] = self.draw_gaussian(
+                        target_cls[:, :, :, cls_id], center_int, radius
+                    )
                     target_offset[i, center_int[0], center_int[1]] = center - center_int
                     target_size[i, center_int[0], center_int[1]] = 1.0 * w, 1.0 * h
                     target_regression_mask[i, center_int[0], center_int[1]] = 1
@@ -218,11 +259,11 @@ class CenterNet(nn.Module):
         pred_offset = logits["offset"]
         pred_size = logits["size"]
 
-        # kernel = 3
-        # pad = (kernel - 1) // 2
-        # hmax = F.max_pool2d(pred_cls, (kernel, kernel), stride=1, padding=pad)
-        # keep = (hmax == pred_cls).float()
-        # pred_cls = pred_cls * keep
+        kernel = 3
+        pad = (kernel - 1) // 2
+        hmax = F.max_pool2d(pred_cls, (kernel, kernel), stride=1, padding=pad)
+        keep = (hmax == pred_cls).float()
+        pred_cls = pred_cls * keep
 
         b, c, output_w, output_h = pred_cls.shape
         detects = []
@@ -283,14 +324,15 @@ class CenterNet(nn.Module):
 
             for c in unique_labels:
                 detections_class = detections[detections[:, -1] == c]
-                # if need_nms:
-                #    keep = nms(
-                #        detections_class[:, :4], detections_class[:, 4], nms_thres
-                #    )
-                #    max_detections = detections_class[keep]
-                # else:
-                #    max_detections = detections_class
-                max_detections = detections_class
+                if MODEL_NMS:
+                    keep = nms(
+                        detections_class[:, :4],
+                        detections_class[:, 4],
+                        MODEL_NMS_THRESHOLD,
+                    )
+                    max_detections = detections_class[keep]
+                else:
+                    max_detections = detections_class
                 output[i] = (
                     max_detections
                     if output[i] is None
