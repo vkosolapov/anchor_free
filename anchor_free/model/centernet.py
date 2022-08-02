@@ -199,7 +199,9 @@ class CenterNet(nn.Module):
             radius - left : radius + right, radius - top : radius + bottom
         ]
         if min(masked_gaussian.shape) > 0 and min(masked_heatmap.shape) > 0:
-            masked_heatmap = np.maximum(masked_heatmap, masked_gaussian * k)
+            masked_heatmap = np.maximum(
+                masked_heatmap, np.expand_dims(masked_gaussian * k, axis=2)
+            )
             heatmap[x - left : x + right, y - top : y + bottom] = masked_heatmap
         return heatmap
 
