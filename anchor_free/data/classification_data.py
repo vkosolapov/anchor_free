@@ -10,7 +10,7 @@ from data.augmentation import augmentations
 class ClassificationDataModule(AbstractDataModule):
     def __init__(self):
         super().__init__()
-        self.data_dir = "datasets/imagenette2"
+        self.data_dir = "../input/imagenette/imagenette"
 
     @staticmethod
     def augment(image, augmentation_pipeline):
