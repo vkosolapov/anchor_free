@@ -50,12 +50,12 @@ class BoundaryIoU(torchmetrics.Metric):
                     target[i][j].cpu().numpy().astype("uint8"),
                     boundary_size=self.boundary_size,
                 )
-                boundary_target = torch.Tensor(boundary_target, dtype=torch.uint8)
+                boundary_target = torch.Tensor(boundary_target).int()
                 boundary_preds = mask_to_boundary(
                     preds[i][j].cpu().numpy().astype("uint8"),
                     boundary_size=self.boundary_size,
                 )
-                boundary_preds = torch.Tensor(boundary_preds, dtype=torch.uint8)
+                boundary_preds = torch.Tensor(boundary_preds).int()
                 self.iou(boundary_preds, boundary_target)
 
     def compute(self):
