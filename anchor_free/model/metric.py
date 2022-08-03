@@ -61,9 +61,7 @@ class BoundaryIoU(torchmetrics.Metric):
                     preds[i][j], boundary_size=self.boundary_size,
                 )
                 boundary_preds = torch.Tensor(boundary_preds).int()
-                print(
-                    boundary_preds.device(), boundary_target.device(), self.iou.device()
-                )
+                print(boundary_preds.device, boundary_target.device, self.iou.device)
                 self.iou(boundary_preds, boundary_target)
 
     def compute(self):
