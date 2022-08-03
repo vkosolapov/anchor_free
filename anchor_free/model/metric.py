@@ -38,7 +38,7 @@ class BoundaryIoU(torchmetrics.Metric):
         self.num_classes = num_classes
         self.threshold = threshold
         self.boundary_size = boundary_size
-        self.iou = torchmetrics.JaccardIndex(num_classes=2).cpu()
+        self.iou = torchmetrics.JaccardIndex(num_classes=2)
 
     def update(self, preds: torch.Tensor, target: torch.Tensor):
         target = (
@@ -56,11 +56,14 @@ class BoundaryIoU(torchmetrics.Metric):
                 boundary_target = mask_to_boundary(
                     target[i][j], boundary_size=self.boundary_size,
                 )
-                boundary_target = torch.Tensor(boundary_target).int().cpu()
+                boundary_target = torch.Tensor(boundary_target).int()
                 boundary_preds = mask_to_boundary(
                     preds[i][j], boundary_size=self.boundary_size,
                 )
-                boundary_preds = torch.Tensor(boundary_preds).int().cpu()
+                boundary_preds = torch.Tensor(boundary_preds).int()
+                print(
+                    boundary_preds.device(), boundary_target.device(), self.iou.device()
+                )
                 self.iou(boundary_preds, boundary_target)
 
     def compute(self):
