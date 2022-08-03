@@ -204,7 +204,13 @@ class DetectionModel(AbstractModel):
                 self.metrics[phase][metric], Recall
             ):
                 self.metrics[phase][metric](
-                    logits["cls"].cpu(), targets["cls"].round().long().cpu()
+                    torch.sigmoid(logits["cls"])
+                    .permute(0, 2, 3, 1)
+                    .reshape([-1, self.num_classes]),
+                    targets["cls"]
+                    .type(torch.int32)
+                    .permute(0, 2, 3, 1)
+                    .reshape([-1, self.num_classes]),
                 )
                 self.log(
                     f"{metric}/{phase}",
