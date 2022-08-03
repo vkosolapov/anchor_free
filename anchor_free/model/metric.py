@@ -15,7 +15,7 @@ def mask_to_boundary(mask, boundary_size=3, dilation_ratio=0.02):
     kernel = np.ones((boundary_size, boundary_size), dtype=np.uint8)
     new_mask_erode = cv2.erode(new_mask, kernel, iterations=dilation)
     mask_erode = new_mask_erode[1 : h + 1, 1 : w + 1]
-    return mask - mask_erode
+    return mask_erode
 
 
 class BoundaryIoU(torchmetrics.Metric):
