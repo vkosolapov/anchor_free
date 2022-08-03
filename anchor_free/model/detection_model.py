@@ -2,6 +2,7 @@ import torch
 
 from timm.models.resnet import _create_resnet, Bottleneck
 from timm.models import create_model
+from torchmetrics import Precision, Recall
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
 from model.abstract_model import AbstractModel
@@ -67,6 +68,16 @@ class DetectionModel(AbstractModel):
                     max_detection_thresholds=[100],
                     class_metrics=False,
                 ),
+                "precision": Precision(
+                    num_classes=self.num_classes,
+                    threshold=MODEL_CLASSIFICATION_THRESHOLD,
+                    average="macro",
+                ),
+                "recall": Recall(
+                    num_classes=self.num_classes,
+                    threshold=MODEL_CLASSIFICATION_THRESHOLD,
+                    average="macro",
+                ),
             },
             "test": {
                 "map_05": MeanAveragePrecision(
@@ -83,12 +94,26 @@ class DetectionModel(AbstractModel):
                     max_detection_thresholds=[100],
                     class_metrics=False,
                 ),
+                "precision": Precision(
+                    num_classes=self.num_classes,
+                    threshold=MODEL_CLASSIFICATION_THRESHOLD,
+                    average="macro",
+                ),
+                "recall": Recall(
+                    num_classes=self.num_classes,
+                    threshold=MODEL_CLASSIFICATION_THRESHOLD,
+                    average="macro",
+                ),
             },
         }
         self.val_map_05 = self.metrics["val"]["map_05"]
         self.val_map_05_095 = self.metrics["val"]["map_05_095"]
+        self.val_precision = self.metrics["val"]["precision"]
+        self.val_recall = self.metrics["val"]["recall"]
         self.test_map_05 = self.metrics["test"]["map_05"]
         self.test_map_05_095 = self.metrics["test"]["map_05_095"]
+        self.test_precision = self.metrics["test"]["precision"]
+        self.test_recall = self.metrics["test"]["recall"]
 
     def configure_optimizers(self):
         optimizer = Ranger(self.parameters(), lr=0.01, weight_decay=0.0001)
@@ -134,45 +159,54 @@ class DetectionModel(AbstractModel):
                 on_step=False,
                 on_epoch=True,
             )
+        batch_preds = []
+        batch_labels = []
         for i in range(len(predictions)):
             if not predictions[i] is None:
-                preds = [
-                    {
-                        "boxes": torch.Tensor(predictions[i][:, :4]),
-                        "scores": torch.Tensor(predictions[i][:, 4]),
-                        "labels": torch.Tensor(predictions[i][:, 5]),
-                    }
-                ]
+                preds = {
+                    "boxes": torch.Tensor(predictions[i][:, :4]),
+                    "scores": torch.Tensor(predictions[i][:, 4]),
+                    "labels": torch.Tensor(predictions[i][:, 5]),
+                }
             else:
-                preds = [
-                    {
-                        "boxes": torch.Tensor(),
-                        "scores": torch.Tensor(),
-                        "labels": torch.Tensor(),
-                    }
-                ]
+                preds = {
+                    "boxes": torch.Tensor(),
+                    "scores": torch.Tensor(),
+                    "labels": torch.Tensor(),
+                }
+            batch_preds.append(preds)
             if not y[i] is None:
-                labels = [
-                    {
-                        "boxes": torch.Tensor(y[i, : labels_count[i], :4]).view(
-                            labels_count[i], 4
-                        ),
-                        "labels": torch.Tensor(y[i, : labels_count[i], 4]).view(
-                            labels_count[i]
-                        ),
-                    }
-                ]
+                labels = {
+                    "boxes": torch.Tensor(y[i, : labels_count[i], :4]).view(
+                        labels_count[i], 4
+                    ),
+                    "labels": torch.Tensor(y[i, : labels_count[i], 4]).view(
+                        labels_count[i]
+                    ),
+                }
             else:
-                labels = [{"boxes": torch.Tensor(), "labels": torch.Tensor(),}]
-            for metric in self.metrics[phase]:
-                if isinstance(self.metrics[phase][metric], MeanAveragePrecision):
-                    self.metrics[phase][metric](preds, labels)
+                labels = {"boxes": torch.Tensor(), "labels": torch.Tensor()}
+            batch_labels.append(labels)
 
         for metric in self.metrics[phase]:
             if isinstance(self.metrics[phase][metric], MeanAveragePrecision):
+                self.metrics[phase][metric](batch_preds, batch_labels)
                 self.log(
                     f"{metric}/{phase}",
                     self.metrics[phase][metric]["map"],
+                    metric_attribute=f"{phase}_{metric}",
+                    prog_bar=False,
+                    logger=True,
+                    on_step=False,
+                    on_epoch=True,
+                )
+            elif isinstance(self.metrics[phase][metric], Precision) or isinstance(
+                self.metrics[phase][metric], Recall
+            ):
+                self.metrics[phase][metric](logits["cls"].cpu(), targets["cls"].cpu())
+                self.log(
+                    f"{metric}/{phase}",
+                    self.metrics[phase][metric],
                     metric_attribute=f"{phase}_{metric}",
                     prog_bar=False,
                     logger=True,
