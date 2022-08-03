@@ -8,6 +8,7 @@ from model.abstract_model import AbstractModel
 from model.backbone import TIMMBackbone
 from model.unet import UNet
 from model.norm import CBatchNorm2d
+from model.metric import BoundaryIoU
 from optim.ranger import Ranger
 from optim.cyclic_cosine import CyclicCosineLR
 from consts import *
@@ -58,7 +59,11 @@ class SegmentationModel(AbstractModel):
                     multilabel=False,
                     average="macro",
                     threshold=MODEL_CLASSIFICATION_THRESHOLD,
-                )
+                ),
+                "boundary_iou": BoundaryIoU(
+                    num_classes=self.num_classes,
+                    threshold=MODEL_CLASSIFICATION_THRESHOLD,
+                ),
             },
             "val": {
                 "jaccard": JaccardIndex(
@@ -66,7 +71,11 @@ class SegmentationModel(AbstractModel):
                     multilabel=False,
                     average="macro",
                     threshold=MODEL_CLASSIFICATION_THRESHOLD,
-                )
+                ),
+                "boundary_iou": BoundaryIoU(
+                    num_classes=self.num_classes,
+                    threshold=MODEL_CLASSIFICATION_THRESHOLD,
+                ),
             },
             "test": {
                 "jaccard": JaccardIndex(
@@ -74,12 +83,19 @@ class SegmentationModel(AbstractModel):
                     multilabel=False,
                     average="macro",
                     threshold=MODEL_CLASSIFICATION_THRESHOLD,
-                )
+                ),
+                "boundary_iou": BoundaryIoU(
+                    num_classes=self.num_classes,
+                    threshold=MODEL_CLASSIFICATION_THRESHOLD,
+                ),
             },
         }
         self.train_jaccard = self.metrics["train"]["jaccard"]
+        self.train_boundary_iou = self.metrics["train"]["boundary_iou"]
         self.val_jaccard = self.metrics["val"]["jaccard"]
+        self.val_boundary_iou = self.metrics["val"]["boundary_iou"]
         self.test_jaccard = self.metrics["test"]["jaccard"]
+        self.test_boundary_iou = self.metrics["test"]["boundary_iou"]
 
     def configure_optimizers(self):
         optimizer = Ranger(self.parameters(), lr=0.01, weight_decay=0.0001)
