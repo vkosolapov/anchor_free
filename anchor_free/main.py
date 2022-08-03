@@ -27,6 +27,7 @@ def main():
         callbacks=[
             GradientAccumulationScheduler(scheduling={0: 8, 10: 4, 20: 2, 30: 1}),
             StochasticWeightAveraging(
+                swa_lrs=None,
                 swa_epoch_start=30,
                 annealing_epochs=5,
                 annealing_strategy="cos",
