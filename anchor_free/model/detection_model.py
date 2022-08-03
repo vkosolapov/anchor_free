@@ -203,7 +203,9 @@ class DetectionModel(AbstractModel):
             elif isinstance(self.metrics[phase][metric], Precision) or isinstance(
                 self.metrics[phase][metric], Recall
             ):
-                self.metrics[phase][metric](logits["cls"].cpu(), targets["cls"].cpu())
+                self.metrics[phase][metric](
+                    logits["cls"].cpu(), targets["cls"].round().long().cpu()
+                )
                 self.log(
                     f"{metric}/{phase}",
                     self.metrics[phase][metric],
