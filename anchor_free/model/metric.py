@@ -47,10 +47,10 @@ class BoundaryIoU(torchmetrics.Metric):
         for i in range(b):
             for j in range(c):
                 boundary_target = mask_to_boundary(
-                    target[i][j].numpy(), boundary_size=self.boundary_size
+                    target[i][j].cpu().numpy(), boundary_size=self.boundary_size
                 )
                 boundary_preds = mask_to_boundary(
-                    preds[i][j].numpy(), boundary_size=self.boundary_size
+                    preds[i][j].cpu().numpy(), boundary_size=self.boundary_size
                 )
                 self.iou(boundary_preds, boundary_target)
 
