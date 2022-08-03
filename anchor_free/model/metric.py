@@ -49,7 +49,7 @@ class BoundaryIoU(torchmetrics.Metric):
             .numpy()
             .astype("uint8")
         )
-        b, c, h, w = target.size()
+        b, c, h, w = target.shape
         preds = (preds > self.threshold).cpu().detach().numpy().astype("uint8")
         for i in range(b):
             for j in range(c):
