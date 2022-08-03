@@ -38,7 +38,7 @@ class BoundaryIoU(torchmetrics.Metric):
         self.num_classes = num_classes
         self.threshold = threshold
         self.boundary_size = boundary_size
-        self.iou = torchmetrics.JaccardIndex(num_classes=2)
+        self.iou = torchmetrics.JaccardIndex(num_classes=2).cpu()
 
     def update(self, preds: torch.Tensor, target: torch.Tensor):
         target = (
