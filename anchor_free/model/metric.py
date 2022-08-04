@@ -72,3 +72,18 @@ class BoundaryIoU(torchmetrics.Metric):
 
     def reset(self):
         self.iou.reset()
+
+
+if __name__ == "__main__":
+    from PIL import Image
+
+    file_path = "datasets/clothing_segmentation/png_masks/MASKS/seg_0001.png"
+    mask = Image.open(file_path)
+    mask = mask.resize((288, 416), Image.NEAREST)
+    mask = np.array(mask, np.int32)
+    mask = torch.clamp(torch.from_numpy(np.array(mask)), 0, 1).long()
+    mask = torch.unsqueeze(mask, dim=0)
+    pred = F.one_hot(mask, num_classes=2).permute(0, 3, 1, 2)
+    iou = BoundaryIoU(num_classes=2, threshold=0.5)
+    print(iou(pred, mask))
+
