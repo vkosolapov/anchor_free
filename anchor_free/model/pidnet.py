@@ -860,6 +860,6 @@ class FullModel(nn.Module):
 
     def postprocess_predictions(self, logits):
         pred = F.interpolate(
-            input=logits[1], scale_factor=8, mode="bilinear", align_corners=True
+            input=logits[1], scale_factor=4, mode="bilinear", align_corners=True
         )
         return pred
