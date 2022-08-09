@@ -648,8 +648,8 @@ class PIDNet(nn.Module):
 
     def forward(self, x):
         x1, x2, x3, x4, x5 = x
-        width_output = DATA_IMAGE_SIZE_SEGMENTATION[0] // 8  # x.shape[-1] // 8
-        height_output = DATA_IMAGE_SIZE_SEGMENTATION[1] // 8  # x.shape[-2] // 8
+        width_output = DATA_IMAGE_SIZE_SEGMENTATION[0] // 4  # x.shape[-1] // 8
+        height_output = DATA_IMAGE_SIZE_SEGMENTATION[1] // 4  # x.shape[-2] // 8
         # x = self.conv1(x)
         # x = self.layer1(x)
         # x = self.act(self.layer2(self.act(x)))
