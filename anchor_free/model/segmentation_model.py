@@ -136,6 +136,7 @@ class SegmentationModel(AbstractModel):
         x, y = batch
         logits = self.forward(x)
         predictions = self.head.postprocess_predictions(logits)
+        print(predictions.size(), y.size())
         loss, separate_losses = self.head.loss(logits, y)
         self.log(
             f"loss/{phase}",
