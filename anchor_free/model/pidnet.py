@@ -558,7 +558,7 @@ class PIDNet(nn.Module):
         self.pag4 = PagFM(planes[1], planes[1], **self.params)
         self.layer3_ = self._make_layer(BasicBlock, planes[1], planes[1], m)
         self.layer4_ = self._make_layer(BasicBlock, planes[1], planes[1], m)
-        self.layer5_ = self._make_single_layer(Bottleneck, planes[1], planes[1])
+        self.layer5_ = self._make_single_layer(Bottleneck, planes[1], planes[0] * 2)
         if m == 2:
             self.layer3_d = self._make_single_layer(BasicBlock, planes[1], planes[0])
             self.layer4_d = self._make_single_layer(
@@ -572,8 +572,8 @@ class PIDNet(nn.Module):
                 nn.Conv2d(planes[3], planes[1], kernel_size=3, padding=1, bias=False),
                 norm_layer(planes[1], momentum=bn_mom),
             )
-            self.spp = PAPPM(planes[4], ppm_planes, planes[2], **self.params)
-            self.dfm = Light_Bag(planes[2], planes[2], **self.params)
+            self.spp = PAPPM(planes[4], ppm_planes, planes[1], **self.params)
+            self.dfm = Light_Bag(planes[1], planes[1], **self.params)
         else:
             self.layer3_d = self._make_single_layer(BasicBlock, planes[1], planes[1])
             self.layer4_d = self._make_single_layer(BasicBlock, planes[1], planes[1])
@@ -585,9 +585,9 @@ class PIDNet(nn.Module):
                 nn.Conv2d(planes[3], planes[1], kernel_size=3, padding=1, bias=False),
                 norm_layer(planes[1], momentum=bn_mom),
             )
-            self.spp = DAPPM(planes[4], ppm_planes, planes[2], **self.params)
-            self.dfm = Bag(planes[2], planes[2], **self.params)
-        self.layer5_d = self._make_layer(Bottleneck, planes[1], planes[0], 1)
+            self.spp = DAPPM(planes[4], ppm_planes, planes[1], **self.params)
+            self.dfm = Bag(planes[1], planes[1], **self.params)
+        self.layer5_d = self._make_single_layer(Bottleneck, planes[1], planes[0] * 2)
         if self.augment:
             self.seghead_p = SegmentHead(
                 planes[1], head_planes, num_classes, **self.params
