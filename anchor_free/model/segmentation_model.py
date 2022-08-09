@@ -55,7 +55,6 @@ class SegmentationModel(AbstractModel):
         # )
         model = PIDNet(
             m=2,
-            n=3,
             num_classes=self.num_classes,
             planes=channels,
             ppm_planes=96,

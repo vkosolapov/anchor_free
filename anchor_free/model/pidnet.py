@@ -494,7 +494,6 @@ class PIDNet(nn.Module):
     def __init__(
         self,
         m=2,
-        n=3,
         num_classes=2,
         planes=64,
         ppm_planes=96,
@@ -532,20 +531,7 @@ class PIDNet(nn.Module):
             "drop_path": self.drop_path,
         }
         self.augment = augment
-        # self.conv1 = nn.Sequential(
-        #    nn.Conv2d(3, planes, kernel_size=3, stride=2, padding=1),
-        #    norm_layer(planes, momentum=bn_mom),
-        #    act_layer(inplace=True),
-        #    nn.Conv2d(planes, planes, kernel_size=3, stride=2, padding=1),
-        #    norm_layer(planes, momentum=bn_mom),
-        #    act_layer(inplace=True),
-        # )
         self.act = act_layer(inplace=True)
-        # self.layer1 = self._make_layer(BasicBlock, planes, planes, m)
-        # self.layer2 = self._make_layer(BasicBlock, planes, planes * 2, m, stride=2)
-        # self.layer3 = self._make_layer(BasicBlock, planes * 2, planes * 4, n, stride=2)
-        # self.layer4 = self._make_layer(BasicBlock, planes * 4, planes * 8, n, stride=2)
-        # self.layer5 = self._make_layer(Bottleneck, planes * 8, planes * 8, 2, stride=2)
         self.compression3 = nn.Sequential(
             nn.Conv2d(planes[2], planes[1], kernel_size=1, bias=False),
             norm_layer(planes[1], momentum=bn_mom),
@@ -651,32 +637,24 @@ class PIDNet(nn.Module):
 
     def forward(self, x):
         x1, x2, x3, x4, x5 = x
-        width_output = DATA_IMAGE_SIZE_SEGMENTATION[0] // 4  # x.shape[-1] // 8
-        height_output = DATA_IMAGE_SIZE_SEGMENTATION[1] // 4  # x.shape[-2] // 8
-        # x = self.conv1(x)
-        # x = self.layer1(x)
-        # x = self.act(self.layer2(self.act(x)))
-        x = x2
-        x_ = self.layer3_(x)
-        x_d = self.layer3_d(x)
-        # x = self.act(self.layer3(x))
-        x = x3
-        x_ = self.pag3(x_, self.compression3(x))
+        width_output = DATA_IMAGE_SIZE_SEGMENTATION[0] // 4
+        height_output = DATA_IMAGE_SIZE_SEGMENTATION[1] // 4
+        x_ = self.layer3_(x2)
+        x_d = self.layer3_d(x2)
+        x_ = self.pag3(x_, self.compression3(x3))
         x_d = x_d + F.interpolate(
-            self.diff3(x),
+            self.diff3(x3),
             size=[height_output, width_output],
             mode="bilinear",
             align_corners=algc,
         )
         if self.augment:
             temp_p = x_
-        # x = self.act(self.layer4(x))
-        x = x4
         x_ = self.layer4_(self.act(x_))
         x_d = self.layer4_d(self.act(x_d))
-        x_ = self.pag4(x_, self.compression4(x))
+        x_ = self.pag4(x_, self.compression4(x4))
         x_d = x_d + F.interpolate(
-            self.diff4(x),
+            self.diff4(x4),
             size=[height_output, width_output],
             mode="bilinear",
             align_corners=algc,
@@ -685,10 +663,8 @@ class PIDNet(nn.Module):
             temp_d = x_d
         x_ = self.layer5_(self.act(x_))
         x_d = self.layer5_d(self.act(x_d))
-        # x = self.layer5(x)
-        x = x5
         x = F.interpolate(
-            self.spp(x),
+            self.spp(x5),
             size=[height_output, width_output],
             mode="bilinear",
             align_corners=algc,
