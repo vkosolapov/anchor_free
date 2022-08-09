@@ -8,6 +8,7 @@ from model.abstract_model import AbstractModel
 from model.backbone import TIMMBackbone
 from model.unet import UNet
 from model.norm import CBatchNorm2d
+from model.pidnet import FullModel, PIDNet, OhemCrossEntropy, BoundaryLoss
 from model.metric import BoundaryIoU
 from optim.ranger import Ranger
 from optim.cyclic_cosine import CyclicCosineLR
@@ -34,24 +35,38 @@ class SegmentationModel(AbstractModel):
             features_only=True,
             num_classes=self.num_classes,
         )
-        self.backbone = _create_resnet("resnet18", False, **model_args)
+        # self.backbone = _create_resnet("resnet18", False, **model_args)
         # self.backbone = create_model(
         #    "resnet18",
         #    pretrained=True,
         #    features_only=True,
         #    num_classes=self.num_classes,
         # )
-        self.backbone = TIMMBackbone(self.backbone, multi_output=True)
-        channels = self.backbone.get_output_channels()
-        self.head = UNet(
+        # self.backbone = TIMMBackbone(self.backbone, multi_output=True)
+        # channels = self.backbone.get_output_channels()
+        # self.head = UNet(
+        #    num_classes=self.num_classes,
+        #    bilinear=True,
+        #    channels=channels,
+        #    norm_layer=CBatchNorm2d,
+        #    act_layer=torch.nn.Mish,
+        #    drop_block_rate=0.01,
+        #    drop_path_rate=0.01,
+        # )
+        model = PIDNet(
+            m=2,
+            n=3,
             num_classes=self.num_classes,
-            bilinear=True,
-            channels=channels,
-            norm_layer=CBatchNorm2d,
-            act_layer=torch.nn.Mish,
-            drop_block_rate=0.01,
-            drop_path_rate=0.01,
+            planes=32,
+            ppm_planes=96,
+            head_planes=128,
+            augment=True,
         )
+        sem_criterion = OhemCrossEntropy(
+            ignore_label=-1, thres=0.9, min_kept=100000, weight=None
+        )
+        bd_criterion = BoundaryLoss()
+        self.head = FullModel(model, sem_criterion, bd_criterion)
         self.metrics = {
             "train": {
                 "jaccard": JaccardIndex(
@@ -113,7 +128,7 @@ class SegmentationModel(AbstractModel):
         return [optimizer], [scheduler]
 
     def forward(self, x):
-        x = self.backbone(x)
+        # x = self.backbone(x)
         x = self.head(x)
         return x
 
