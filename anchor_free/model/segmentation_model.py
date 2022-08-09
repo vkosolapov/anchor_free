@@ -60,7 +60,7 @@ class SegmentationModel(AbstractModel):
             planes=32,
             ppm_planes=96,
             head_planes=128,
-            augment=False,
+            augment=True,
         )
         sem_criterion = OhemCrossEntropy(
             ignore_label=-1, thres=0.9, min_kept=100000, weight=None
@@ -135,6 +135,7 @@ class SegmentationModel(AbstractModel):
     def step(self, batch, batch_idx, phase):
         x, y = batch
         logits = self.forward(x)
+        predictions = self.head.postprocess_predictions(logits)
         loss, separate_losses = self.head.loss(logits, y)
         self.log(
             f"loss/{phase}",
@@ -155,7 +156,7 @@ class SegmentationModel(AbstractModel):
             )
 
         for metric in self.metrics[phase]:
-            self.metrics[phase][metric](torch.sigmoid(logits), y)
+            self.metrics[phase][metric](torch.sigmoid(predictions), y)
             self.log(
                 f"{metric}/{phase}",
                 self.metrics[phase][metric],

@@ -93,6 +93,9 @@ class UNet(nn.Module):
             {"loss_cls": loss_cls, "loss_iou": loss_iou},
         )
 
+    def postprocess_predictions(self, logits):
+        return logits
+
 
 class Up(nn.Module):
     def __init__(

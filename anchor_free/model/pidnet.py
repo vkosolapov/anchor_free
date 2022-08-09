@@ -754,3 +754,5 @@ class FullModel(nn.Module):
             {"acc": acc.mean(), "loss_s": loss_s.mean(), "loss_b": loss_b.mean()},
         )
 
+    def postprocess_predictions(self, logits):
+        return logits[1]
