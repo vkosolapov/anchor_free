@@ -60,7 +60,7 @@ class SegmentationModel(AbstractModel):
             planes=32,
             ppm_planes=96,
             head_planes=128,
-            augment=True,
+            augment=False,
         )
         sem_criterion = OhemCrossEntropy(
             ignore_label=-1, thres=0.9, min_kept=100000, weight=None
