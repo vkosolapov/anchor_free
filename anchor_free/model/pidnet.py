@@ -587,7 +587,7 @@ class PIDNet(nn.Module):
             )
             self.spp = DAPPM(planes[4], ppm_planes, planes[2], **self.params)
             self.dfm = Bag(planes[2], planes[2], **self.params)
-        self.layer5_d = self._make_layer(Bottleneck, planes[0], planes[0], 1)
+        self.layer5_d = self._make_layer(Bottleneck, planes[1], planes[0], 1)
         if self.augment:
             self.seghead_p = SegmentHead(
                 planes[1], head_planes, num_classes, **self.params
