@@ -1,8 +1,12 @@
+from functools import partial
+
 import cv2
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from timm.models.layers.drop import DropBlock2d, DropPath
 
 bn_mom = 0.1
 algc = False
@@ -24,6 +28,8 @@ class BasicBlock(nn.Module):
         no_act=False,
         act_layer=nn.ReLU,
         norm_layer=nn.BatchNorm2d,
+        drop_block=nn.Identity,
+        drop_path=nn.Identity,
     ):
         super(BasicBlock, self).__init__()
         self.conv1 = nn.Conv2d(
@@ -33,6 +39,8 @@ class BasicBlock(nn.Module):
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, padding=1, bias=False)
         self.bn2 = norm_layer(planes, momentum=bn_mom)
         self.act = act_layer(inplace=True)
+        self.drop_block = drop_block()
+        self.drop_path = drop_path()
         self.stride = stride
         self.downsample = downsample
         self.no_act = no_act
@@ -41,16 +49,17 @@ class BasicBlock(nn.Module):
         residual = x
         out = self.conv1(x)
         out = self.bn1(out)
+        out = self.drop_block(out)
         out = self.act(out)
         out = self.conv2(out)
         out = self.bn2(out)
         if self.downsample is not None:
             residual = self.downsample(x)
         out += residual
-        if self.no_act:
-            return out
-        else:
-            return self.act(out)
+        if not self.no_act:
+            out = self.act(out)
+        out = self.drop_path(out)
+        return out
 
 
 class Bottleneck(nn.Module):
@@ -65,6 +74,8 @@ class Bottleneck(nn.Module):
         no_act=True,
         act_layer=nn.ReLU,
         norm_layer=nn.BatchNorm2d,
+        drop_block=nn.Identity,
+        drop_path=nn.Identity,
     ):
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
@@ -78,6 +89,8 @@ class Bottleneck(nn.Module):
         )
         self.bn3 = norm_layer(planes * self.expansion, momentum=bn_mom)
         self.act = act_layer(inplace=True)
+        self.drop_block = drop_block()
+        self.drop_path = drop_path()
         self.stride = stride
         self.downsample = downsample
         self.no_act = no_act
@@ -89,16 +102,17 @@ class Bottleneck(nn.Module):
         out = self.act(out)
         out = self.conv2(out)
         out = self.bn2(out)
+        out = self.drop_block(out)
         out = self.act(out)
         out = self.conv3(out)
         out = self.bn3(out)
         if self.downsample is not None:
             residual = self.downsample(x)
         out += residual
-        if self.no_act:
-            return out
-        else:
-            return self.act(out)
+        if not self.no_act:
+            out = self.act(out)
+        out = self.drop_path(out)
+        return out
 
 
 class PagFM(nn.Module):
@@ -486,11 +500,35 @@ class PIDNet(nn.Module):
         augment=True,
         act_layer=nn.ReLU,
         norm_layer=nn.BatchNorm2d,
+        drop_block_rate=0.0,
+        drop_path_rate=0.0,
     ):
         super(PIDNet, self).__init__()
         self.act_layer = act_layer
         self.norm_layer = norm_layer
+        self.drop_block = (
+            partial(
+                DropBlock2d,
+                drop_prob=drop_block_rate,
+                block_size=3,
+                gamma_scale=1.0,
+                fast=True,
+            )
+            if drop_block_rate > 0.0
+            else nn.Identity
+        )
+        self.drop_path = (
+            partial(DropPath, drop_prob=drop_path_rate)
+            if drop_path_rate > 0.0
+            else nn.Identity
+        )
         self.params = {"act_layer": act_layer, "norm_layer": norm_layer}
+        self.block_params = {
+            "act_layer": act_layer,
+            "norm_layer": norm_layer,
+            "drop_block": self.drop_block,
+            "drop_path": self.drop_path,
+        }
         self.augment = augment
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, planes, kernel_size=3, stride=2, padding=1),
@@ -575,16 +613,16 @@ class PIDNet(nn.Module):
                 self.norm_layer(planes * block.expansion, momentum=bn_mom),
             )
         layers = []
-        layers.append(block(inplanes, planes, stride, downsample, **self.params))
+        layers.append(block(inplanes, planes, stride, downsample, **self.block_params))
         inplanes = planes * block.expansion
         for i in range(1, blocks):
             if i == (blocks - 1):
                 layers.append(
-                    block(inplanes, planes, stride=1, no_act=True, **self.params)
+                    block(inplanes, planes, stride=1, no_act=True, **self.block_params)
                 )
             else:
                 layers.append(
-                    block(inplanes, planes, stride=1, no_act=False, **self.params)
+                    block(inplanes, planes, stride=1, no_act=False, **self.block_params)
                 )
         return nn.Sequential(*layers)
 
@@ -601,7 +639,9 @@ class PIDNet(nn.Module):
                 ),
                 self.norm_layer(planes * block.expansion, momentum=bn_mom),
             )
-        layer = block(inplanes, planes, stride, downsample, no_act=True, **self.params)
+        layer = block(
+            inplanes, planes, stride, downsample, no_act=True, **self.block_params
+        )
         return layer
 
     def forward(self, x):
