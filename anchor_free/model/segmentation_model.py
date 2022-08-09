@@ -63,6 +63,8 @@ class SegmentationModel(AbstractModel):
             augment=True,
             act_layer=torch.nn.Mish,
             norm_layer=CBatchNorm2d,
+            drop_block_rate=0.01,
+            drop_path_rate=0.01,
         )
         sem_criterion = OhemCrossEntropy(
             ignore_label=-1, thres=0.9, min_kept=100000, weight=None
