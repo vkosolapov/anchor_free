@@ -594,7 +594,7 @@ class PIDNet(nn.Module):
             )
             self.seghead_d = SegmentHead(planes[1], planes[0], 1, **self.params)
         self.final_layer = SegmentHead(
-            planes[2], head_planes, num_classes, **self.params
+            planes[1], head_planes, num_classes, **self.params
         )
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
