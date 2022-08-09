@@ -561,14 +561,14 @@ class PIDNet(nn.Module):
         self.layer5_ = self._make_layer(Bottleneck, planes[1], planes[1], 1)
         if m == 2:
             self.layer3_d = self._make_single_layer(BasicBlock, planes[1], planes[0])
-            self.layer4_d = self._make_layer(Bottleneck, planes[0], planes[1], 1)
+            self.layer4_d = self._make_layer(Bottleneck, planes[0], planes[0], 1)
             self.diff3 = nn.Sequential(
                 nn.Conv2d(planes[2], planes[0], kernel_size=3, padding=1, bias=False),
                 norm_layer(planes[0], momentum=bn_mom),
             )
             self.diff4 = nn.Sequential(
-                nn.Conv2d(planes[3], planes[0], kernel_size=3, padding=1, bias=False),
-                norm_layer(planes[0], momentum=bn_mom),
+                nn.Conv2d(planes[3], planes[1], kernel_size=3, padding=1, bias=False),
+                norm_layer(planes[1], momentum=bn_mom),
             )
             self.spp = PAPPM(planes[4], ppm_planes, planes[2], **self.params)
             self.dfm = Light_Bag(planes[2], planes[2], **self.params)
