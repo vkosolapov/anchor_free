@@ -697,6 +697,7 @@ class BoundaryLoss(nn.Module):
 def get_edge(
     label, edge_pad=True, edge_size=4,
 ):
+    label = np.uint8(label)
     edge = cv2.Canny(label, 0.1, 0.2)
     kernel = np.ones((edge_size, edge_size), np.uint8)
     if edge_pad:
