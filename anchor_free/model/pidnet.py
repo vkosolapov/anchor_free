@@ -567,7 +567,7 @@ class PIDNet(nn.Module):
                 norm_layer(planes[0], momentum=bn_mom),
             )
             self.diff4 = nn.Sequential(
-                nn.Conv2d(planes[3], planes[1], kernel_size=3, padding=1, bias=False),
+                nn.Conv2d(planes[3], planes[0], kernel_size=3, padding=1, bias=False),
                 norm_layer(planes[1], momentum=bn_mom),
             )
             self.spp = PAPPM(planes[4], ppm_planes, planes[2], **self.params)
