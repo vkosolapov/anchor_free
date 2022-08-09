@@ -755,4 +755,6 @@ class FullModel(nn.Module):
         )
 
     def postprocess_predictions(self, logits):
+        for logit in logits:
+            print(logit.size())
         return logits[1]
