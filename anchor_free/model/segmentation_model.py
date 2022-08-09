@@ -35,15 +35,15 @@ class SegmentationModel(AbstractModel):
             features_only=True,
             num_classes=self.num_classes,
         )
-        # self.backbone = _create_resnet("resnet18", False, **model_args)
+        self.backbone = _create_resnet("resnet18", False, **model_args)
         # self.backbone = create_model(
         #    "resnet18",
         #    pretrained=True,
         #    features_only=True,
         #    num_classes=self.num_classes,
         # )
-        # self.backbone = TIMMBackbone(self.backbone, multi_output=True)
-        # channels = self.backbone.get_output_channels()
+        self.backbone = TIMMBackbone(self.backbone, multi_output=True)
+        channels = self.backbone.get_output_channels()
         # self.head = UNet(
         #    num_classes=self.num_classes,
         #    bilinear=True,
@@ -57,7 +57,7 @@ class SegmentationModel(AbstractModel):
             m=2,
             n=3,
             num_classes=self.num_classes,
-            planes=32,
+            planes=channels,
             ppm_planes=96,
             head_planes=128,
             augment=True,
@@ -132,7 +132,7 @@ class SegmentationModel(AbstractModel):
         return [optimizer], [scheduler]
 
     def forward(self, x):
-        # x = self.backbone(x)
+        x = self.backbone(x)
         x = self.head(x)
         return x
 
