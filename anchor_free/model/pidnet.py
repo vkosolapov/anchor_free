@@ -156,7 +156,7 @@ class PagFM(nn.Module):
             y_q,
             size=[input_size[2], input_size[3]],
             mode="bilinear",
-            align_corners=False,
+            align_corners=algc,
         )
         x_k = self.f_x(x)
         if self.with_channel:
@@ -164,7 +164,7 @@ class PagFM(nn.Module):
         else:
             sim_map = torch.sigmoid(torch.sum(x_k * y_q, dim=1).unsqueeze(1))
         y = F.interpolate(
-            y, size=[input_size[2], input_size[3]], mode="bilinear", align_corners=False
+            y, size=[input_size[2], input_size[3]], mode="bilinear", align_corners=algc
         )
         x = (1 - sim_map) * x + sim_map * y
         return x
@@ -820,7 +820,7 @@ class FullModel(nn.Module):
         if ph != h or pw != w:
             for i in range(len(outputs)):
                 outputs[i] = F.interpolate(
-                    outputs[i], size=(h, w), mode="bilinear", align_corners=True,
+                    outputs[i], size=(h, w), mode="bilinear", align_corners=algc,
                 )
         acc = self.pixel_acc(outputs[-2], labels)
         loss_s = self.sem_loss(outputs[:-1], labels)
@@ -836,6 +836,6 @@ class FullModel(nn.Module):
 
     def postprocess_predictions(self, logits):
         pred = F.interpolate(
-            input=logits[1], scale_factor=4, mode="bilinear", align_corners=True
+            input=logits[1], scale_factor=4, mode="bilinear", align_corners=algc
         )
         return pred
