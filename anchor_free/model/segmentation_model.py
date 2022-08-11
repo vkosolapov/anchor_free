@@ -35,13 +35,13 @@ class SegmentationModel(AbstractModel):
             features_only=True,
             num_classes=self.num_classes,
         )
-        self.backbone = _create_resnet("resnet18", False, **model_args)
-        # self.backbone = create_model(
-        #    "resnet18",
-        #    pretrained=True,
-        #    features_only=True,
-        #    num_classes=self.num_classes,
-        # )
+        # self.backbone = _create_resnet("resnet18", False, **model_args)
+        self.backbone = create_model(
+            "resnet18",
+            pretrained=True,
+            features_only=True,
+            num_classes=self.num_classes,
+        )
         self.backbone = TIMMBackbone(self.backbone, multi_output=True)
         channels = self.backbone.get_output_channels()
         # self.head = UNet(
