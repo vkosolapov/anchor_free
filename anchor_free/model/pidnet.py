@@ -544,11 +544,13 @@ class PIDNet(nn.Module):
         self.pag4 = PagFM(planes[1], planes[1], **self.params)
         self.layer3_ = self._make_layer(BasicBlock, planes[1], planes[1], m)
         self.layer4_ = self._make_layer(BasicBlock, planes[1], planes[1], m)
-        self.layer5_ = self._make_single_layer(Bottleneck, planes[1], planes[1] / 2)
+        self.layer5_ = self._make_single_layer(
+            Bottleneck, planes[1], int(planes[1] / 2)
+        )
         if m == 2:
             self.layer3_d = self._make_single_layer(BasicBlock, planes[1], planes[0])
             self.layer4_d = self._make_single_layer(
-                Bottleneck, planes[0], planes[1] / 2
+                Bottleneck, planes[0], int(planes[1] / 2)
             )
             self.diff3 = nn.Sequential(
                 nn.Conv2d(planes[2], planes[0], kernel_size=3, padding=1, bias=False),
@@ -573,7 +575,9 @@ class PIDNet(nn.Module):
             )
             self.spp = DAPPM(planes[4], ppm_planes, planes[1], **self.params)
             self.dfm = Bag(planes[1], planes[1], **self.params)
-        self.layer5_d = self._make_single_layer(Bottleneck, planes[1], planes[1] / 2)
+        self.layer5_d = self._make_single_layer(
+            Bottleneck, planes[1], int(planes[1] / 2)
+        )
         if self.augment:
             self.seghead_p = SegmentHead(
                 planes[1], head_planes, num_classes, **self.params
