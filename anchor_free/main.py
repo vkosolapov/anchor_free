@@ -7,15 +7,15 @@ from pytorch_lightning.callbacks import (
 )
 from pytorch_lightning.loggers.wandb import WandbLogger
 
-from model.segmentation_model import SegmentationModel
-from data.segmentation_data import SegmentationDataModule
+from model.classification_model import ClassificationModel
+from data.classification_data import ClassificationDataModule
 from consts import *
 
 
 def main():
     seed_everything(seed=42, workers=True)
-    model = SegmentationModel()
-    data = SegmentationDataModule()
+    model = ClassificationModel()
+    data = ClassificationDataModule()
     trainer = Trainer(
         accelerator=TRAINER_ACCELERATOR,
         devices=TRAINER_DEVICES,

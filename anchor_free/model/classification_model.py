@@ -2,6 +2,7 @@ import torch
 from torch.nn import functional as F
 
 from timm.models.resnet import _create_resnet, Bottleneck
+from timm.models import create_model
 from torchmetrics import Accuracy, AUROC
 
 from model.abstract_model import AbstractModel
@@ -31,7 +32,10 @@ class ClassificationModel(AbstractModel):
             avg_down=True,
             num_classes=self.num_classes,
         )
-        self.model = _create_resnet("resnet18", False, **model_args)
+        # self.model = _create_resnet("resnet18", False, **model_args)
+        self.model = create_model(
+            "mixer_s16_224", pretrained=False, num_classes=self.num_classes,
+        )
         self.classification_loss = LabelSmoothingFocalLoss(
             self.num_classes, need_one_hot=True, gamma=2, alpha=0.25, smoothing=0.1
         )
