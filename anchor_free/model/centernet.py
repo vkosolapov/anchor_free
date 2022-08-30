@@ -59,7 +59,7 @@ class CenterNet(nn.Module):
         self.size_head = self._make_head(input_channels=32, output_channels=2)
 
         self.classification_loss = LabelSmoothingFocalLoss(
-            num_classes, need_one_hot=False, gamma=2, alpha=0.75, smoothing=0.0
+            num_classes, need_one_hot=False, gamma=2, alpha=0.9, smoothing=0.0
         )
         self.regression_loss = RegressionLossWithMask(smooth=True)
         self.bbox_loss = IoULossWithMask(CIoU=True)
