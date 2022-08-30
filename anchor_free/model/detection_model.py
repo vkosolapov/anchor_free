@@ -148,7 +148,7 @@ class DetectionModel(AbstractModel):
             f"boxes/{phase}",
             boxes_count,
             prog_bar=False,
-            logger=False,
+            logger=True,
             on_step=False,
             on_epoch=True,
         )
