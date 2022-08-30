@@ -140,7 +140,9 @@ class DetectionModel(AbstractModel):
         targets = self.head.preprocess_targets(y, labels_count)
         logits = self.forward(x)
         predictions = self.head.postprocess_predictions(logits)
-        boxes_count = sum([pred.shape[0] for pred in predictions])
+        boxes_count = sum(
+            [pred.shape[0] if not pred is None else 0 for pred in predictions]
+        )
         print(boxes_count)
         self.log(
             f"boxes/{phase}",
