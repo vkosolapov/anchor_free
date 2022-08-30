@@ -59,7 +59,7 @@ class CenterNet(nn.Module):
         self.size_head = self._make_head(input_channels=32, output_channels=2)
 
         self.classification_loss = LabelSmoothingFocalLoss(
-            num_classes, need_one_hot=False, gamma=2, alpha=0.25, smoothing=0.0
+            num_classes, need_one_hot=False, gamma=2, alpha=0.75, smoothing=0.0
         )
         self.regression_loss = RegressionLossWithMask(smooth=True)
         self.bbox_loss = IoULossWithMask(CIoU=True)
@@ -139,7 +139,7 @@ class CenterNet(nn.Module):
             torch.cat([labels_coord, targets["size"]], dim=1),
             targets["mask"],
         )
-        loss = loss_cls * 1.0 + loss_offset * 0.0 + loss_size * 0.0 + loss_bbox * 0.1
+        loss = loss_cls * 100.0 + loss_offset * 0.1 + loss_size * 0.01 + loss_bbox * 0.1
         return (
             loss,
             {
