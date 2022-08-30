@@ -34,7 +34,7 @@ class ClassificationModel(AbstractModel):
         )
         # self.model = _create_resnet("resnet18", False, **model_args)
         self.model = create_model(
-            "mixer_s16_224", pretrained=False, num_classes=self.num_classes,
+            "resmlp_12_224", pretrained=False, num_classes=self.num_classes,
         )
         self.classification_loss = LabelSmoothingFocalLoss(
             self.num_classes, need_one_hot=True, gamma=2, alpha=0.25, smoothing=0.1
