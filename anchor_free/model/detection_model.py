@@ -140,6 +140,15 @@ class DetectionModel(AbstractModel):
         targets = self.head.preprocess_targets(y, labels_count)
         logits = self.forward(x)
         predictions = self.head.postprocess_predictions(logits)
+        boxes_count = sum([pred.size()[0] for pred in predictions])
+        self.log(
+            f"boxes/{phase}",
+            boxes_count,
+            prog_bar=False,
+            logger=False,
+            on_step=False,
+            on_epoch=True,
+        )
         loss, separate_losses = self.head.loss(logits, targets)
         y = y.cpu()
         self.log(
