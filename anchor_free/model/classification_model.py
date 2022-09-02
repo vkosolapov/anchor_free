@@ -9,6 +9,7 @@ from model.abstract_model import AbstractModel
 from model.norm import CBatchNorm2d
 from model.loss import LabelSmoothingFocalLoss
 from optim.ranger import Ranger
+from optim.adan import Adan
 from optim.cyclic_cosine import CyclicCosineLR
 from consts import *
 
@@ -32,10 +33,10 @@ class ClassificationModel(AbstractModel):
             avg_down=True,
             num_classes=self.num_classes,
         )
-        # self.model = _create_resnet("resnet18", False, **model_args)
-        self.model = create_model(
-            "gmlp_ti16_224", pretrained=False, num_classes=self.num_classes,
-        )
+        self.model = _create_resnet("resnet18", False, **model_args)
+        # self.model = create_model(
+        #    "gmlp_ti16_224", pretrained=False, num_classes=self.num_classes,
+        # )
         self.classification_loss = LabelSmoothingFocalLoss(
             self.num_classes, need_one_hot=True, gamma=2, alpha=0.25, smoothing=0.1
         )
@@ -61,7 +62,7 @@ class ClassificationModel(AbstractModel):
         self.test_rocauc = self.metrics["test"]["rocauc"]
 
     def configure_optimizers(self):
-        optimizer = Ranger(self.parameters(), lr=0.01, weight_decay=0.0001)
+        optimizer = Adan(self.parameters(), lr=0.01, weight_decay=0.0001)
         scheduler = CyclicCosineLR(
             optimizer,
             warmup_epochs=5,
