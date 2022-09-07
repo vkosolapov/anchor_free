@@ -137,21 +137,21 @@ class DetectionModel(AbstractModel):
 
     def step(self, batch, batch_idx, phase):
         x, y, labels_count = batch
-        targets = self.head.preprocess_targets(y, labels_count)
         logits = self.forward(x)
         predictions = self.head.postprocess_predictions(logits)
-        boxes_count = sum(
-            [pred.shape[0] if not pred is None else 0 for pred in predictions]
-        )
-        print(boxes_count)
-        self.log(
-            f"boxes/{phase}",
-            boxes_count,
-            prog_bar=False,
-            logger=True,
-            on_step=False,
-            on_epoch=True,
-        )
+        # boxes_count = sum(
+        #    [pred.shape[0] if not pred is None else 0 for pred in predictions]
+        # )
+        # print(boxes_count)
+        # self.log(
+        #    f"boxes/{phase}",
+        #    boxes_count,
+        #    prog_bar=False,
+        #    logger=True,
+        #    on_step=False,
+        #    on_epoch=True,
+        # )
+        targets = self.head.preprocess_targets(y, labels_count)
         loss, separate_losses = self.head.loss(logits, targets)
         y = y.cpu()
         self.log(
