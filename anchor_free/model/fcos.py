@@ -661,21 +661,21 @@ class FCOSHead(nn.Module):
 
         self.fpn_strides = config.fpn_strides
         self.fcos_loss = FCOSLoss(
-            config.sizes,
-            config.gamma,
-            config.alpha,
-            config.iou_loss_type,
-            config.center_sample,
-            config.fpn_strides,
-            config.pos_radius,
+            sizes=config.sizes,
+            gamma=2.0,
+            alpha=0.25,
+            iou_loss_type="giou",
+            center_sample=True,
+            fpn_strides=config.fpn_strides,
+            pos_radius=1.5,
         )
         self.postprocessor = FCOSPostprocessor(
-            MODEL_CLASSIFICATION_THRESHOLD,
-            1000,
-            MODEL_NMS_THRESHOLD,
-            100,
-            0,
-            self.n_class,
+            threshold=MODEL_CLASSIFICATION_THRESHOLD,
+            top_n=1000,
+            nms_threshold=MODEL_NMS_THRESHOLD,
+            post_top_n=100,
+            min_size=0,
+            n_class=self.n_class,
         )
 
     def forward(self, input):
