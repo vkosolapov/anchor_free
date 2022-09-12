@@ -633,7 +633,7 @@ def boxlist_nms(boxlist, scores, threshold, max_proposal=-1):
 class FCOSHead(nn.Module):
     def __init__(self, in_channel, n_class, n_conv, prior, config):
         super().__init__()
-        n_class = n_class - 1
+        self.n_class = n_class
         cls_tower = []
         bbox_tower = []
 
@@ -670,12 +670,12 @@ class FCOSHead(nn.Module):
             config.pos_radius,
         )
         self.postprocessor = FCOSPostprocessor(
-            config.threshold,
-            config.top_n,
-            config.nms_threshold,
-            config.post_top_n,
-            config.min_size,
-            config.n_class,
+            MODEL_CLASSIFICATION_THRESHOLD,
+            1000,
+            MODEL_NMS_THRESHOLD,
+            100,
+            0,
+            self.n_class,
         )
 
     def forward(self, input):
