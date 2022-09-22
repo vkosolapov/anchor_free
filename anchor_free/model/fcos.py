@@ -5,6 +5,7 @@ from torch import nn
 from torch.nn import functional as F
 from torchvision import ops
 
+from model.fpn import FPN, FPNTopP6P7
 from consts import *
 
 
@@ -660,6 +661,10 @@ class FCOSHead(nn.Module):
         self.scales = nn.ModuleList([Scale(1.0) for _ in range(5)])
 
         self.fpn_strides = config.fpn_strides
+        fpn_top = FPNTopP6P7(
+            config.feat_channels[-1], config.out_channel, use_p5=config.use_p5
+        )
+        self.fpn = FPN(config.feat_channels, config.out_channel, fpn_top)
         self.fcos_loss = FCOSLoss(
             sizes=config.sizes,
             gamma=2.0,
@@ -683,6 +688,7 @@ class FCOSHead(nn.Module):
         bboxes = []
         centers = []
 
+        input = self.fpn(input)
         self.location = self.compute_location(input)
 
         for feat, scale in zip(input, self.scales):
@@ -705,6 +711,9 @@ class FCOSHead(nn.Module):
             "loss_center": loss_center,
         }
         return loss_cls * 1.0 + loss_center * 1.0 + loss_box * 0.01, losses
+
+    def preprocess_targets(self, targets, labels_count):
+        return targets
 
     def postprocess_predictions(self, logits):
         boxes = self.postprocessor(

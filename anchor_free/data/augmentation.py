@@ -48,5 +48,5 @@ augmentations = A.Compose(
         ),
     ],
     p=1,
-    # bbox_params=A.BboxParams(format="pascal_voc", min_area=16, min_visibility=0.1),
+    bbox_params=A.BboxParams(format="pascal_voc", min_area=16, min_visibility=0.1),
 )
