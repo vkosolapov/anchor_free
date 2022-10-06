@@ -662,8 +662,8 @@ class FCOS(nn.Module):
         self.scales = nn.ModuleList([Scale(1.0) for _ in range(5)])
 
         self.fpn_strides = [8, 16, 32, 64, 128]
-        fpn_top = FPNTopP6P7(1024, 256, use_p5=True)
-        self.fpn = FPN([0, 0, 512, 768, 1024], 256, fpn_top)
+        fpn_top = FPNTopP6P7(2048, 256, use_p5=True)
+        self.fpn = FPN([0, 0, 512, 768, 2048], 256, fpn_top)
         self.fcos_loss = FCOSLoss(
             sizes=[[-1, 64], [64, 128], [128, 256], [256, 512], [512, 100000000]],
             gamma=2.0,
