@@ -631,14 +631,15 @@ def boxlist_nms(boxlist, scores, threshold, max_proposal=-1):
     return boxlist.convert(mode)
 
 
-class FCOSHead(nn.Module):
-    def __init__(self, in_channel, n_class, n_conv, prior, config):
+class FCOS(nn.Module):
+    def __init__(self, in_channel, n_class):
         super().__init__()
         self.n_class = n_class
         cls_tower = []
         bbox_tower = []
+        prior = 0.01
 
-        for i in range(n_conv):
+        for i in range(4):
             cls_tower.append(
                 nn.Conv2d(in_channel, in_channel, 3, padding=1, bias=False)
             )
@@ -660,18 +661,16 @@ class FCOSHead(nn.Module):
         nn.init.constant_(self.cls_pred.bias, prior_bias)
         self.scales = nn.ModuleList([Scale(1.0) for _ in range(5)])
 
-        self.fpn_strides = config.fpn_strides
-        fpn_top = FPNTopP6P7(
-            config.feat_channels[-1], config.out_channel, use_p5=config.use_p5
-        )
-        self.fpn = FPN(config.feat_channels, config.out_channel, fpn_top)
+        self.fpn_strides = [8, 16, 32, 64, 128]
+        fpn_top = FPNTopP6P7(1024, 256, use_p5=True)
+        self.fpn = FPN([0, 0, 512, 768, 1024], 256, fpn_top)
         self.fcos_loss = FCOSLoss(
-            sizes=config.sizes,
+            sizes=[[-1, 64], [64, 128], [128, 256], [256, 512], [512, 100000000]],
             gamma=2.0,
             alpha=0.25,
             iou_loss_type="giou",
             center_sample=True,
-            fpn_strides=config.fpn_strides,
+            fpn_strides=[8, 16, 32, 64, 128],
             pos_radius=1.5,
         )
         self.postprocessor = FCOSPostprocessor(

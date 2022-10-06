@@ -7,6 +7,7 @@ from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
 from model.abstract_model import AbstractModel
 from model.backbone import TIMMBackbone
+from model.fcos import FCOS
 from model.centernet import CenterNet
 from model.norm import CBatchNorm2d
 from optim.ranger import Ranger
@@ -43,14 +44,15 @@ class DetectionModel(AbstractModel):
         # )
         self.backbone = TIMMBackbone(self.backbone, multi_output=False)
         channels = self.backbone.get_output_channels()
-        self.head = CenterNet(
-            num_classes=self.num_classes,
-            input_channels=channels,
-            norm_layer=CBatchNorm2d,
-            act_layer=torch.nn.Mish,
-            drop_block_rate=0.01,
-            drop_path_rate=0.01,
-        )
+        # self.head = CenterNet(
+        #    num_classes=self.num_classes,
+        #    input_channels=channels,
+        #    norm_layer=CBatchNorm2d,
+        #    act_layer=torch.nn.Mish,
+        #    drop_block_rate=0.01,
+        #    drop_path_rate=0.01,
+        # )
+        self.head = FCOS(channels, self.num_classes)
         self.metrics = {
             "train": {},
             "val": {
