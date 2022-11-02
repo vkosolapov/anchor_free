@@ -33,8 +33,9 @@ class FPN(nn.Module):
         inner = self.inner_convs[-1](inputs[-1])
         outs = [self.out_convs[-1](inner)]
 
+        print(inputs.size())
         for feat, inner_conv, out_conv in zip(
-            inputs[:-1].flip(), self.inner_convs[:-1].flip(), self.out_convs[:-1].flip()
+            inputs[:-1][::-1], self.inner_convs[:-1][::-1], self.out_convs[:-1][::-1]
         ):
             if inner_conv is None:
                 continue
