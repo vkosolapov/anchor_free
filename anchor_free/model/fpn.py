@@ -33,9 +33,8 @@ class FPN(nn.Module):
         inner = self.inner_convs[-1](inputs[-1])
         outs = [self.out_convs[-1](inner)]
 
-        print(self.inner_convs, self.out_convs)
         for feat, inner_conv, out_conv in zip(
-            inputs[:-1][::-1], self.inner_convs[:-1][::-1], self.out_convs[:-1][::-1]
+            inputs[:-1].flip(), self.inner_convs[:-1].flip(), self.out_convs[:-1].flip()
         ):
             if inner_conv is None:
                 continue
@@ -64,4 +63,3 @@ class FPNTopP6P7(nn.Module):
         p6 = self.p6(input)
         p7 = self.p7(F.relu(p6))
         return p6, p7
-
