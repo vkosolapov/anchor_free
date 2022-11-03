@@ -634,7 +634,7 @@ def boxlist_nms(boxlist, scores, threshold, max_proposal=-1):
 class FCOS(nn.Module):
     def __init__(self, channels, n_class):
         super().__init__()
-        in_channel = channels[0]
+        in_channel = 256
         self.n_class = n_class
         cls_tower = []
         bbox_tower = []
