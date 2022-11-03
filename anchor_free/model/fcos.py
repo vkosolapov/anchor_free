@@ -634,7 +634,7 @@ def boxlist_nms(boxlist, scores, threshold, max_proposal=-1):
 class FCOS(nn.Module):
     def __init__(self, channels, n_class):
         super().__init__()
-        in_channel = channels[-1]
+        in_channel = channels[0]
         self.n_class = n_class
         cls_tower = []
         bbox_tower = []
@@ -690,8 +690,6 @@ class FCOS(nn.Module):
 
         input = self.fpn(input)
         self.location = self.compute_location(input)
-        for tensor in input:
-            print(tensor.size())
 
         for feat, scale in zip(input, self.scales):
             cls_out = self.cls_tower(feat)
