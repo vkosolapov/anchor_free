@@ -204,10 +204,10 @@ class FCOSLoss(nn.Module):
 
         for i in range(len(targets)):
             targets_per_img = targets[i]
-            assert targets_per_img.mode == "xyxy"
-            bboxes = targets_per_img.box
-            labels_per_img = targets_per_img.fields["labels"]
-            area = targets_per_img.area()
+            assert targets_per_img["mode"] == "xyxy"
+            bboxes = targets_per_img["box"]
+            labels_per_img = targets_per_img["labels"]
+            area = targets_per_img["area"]
 
             l = xs[:, None] - bboxes[:, 0][None]
             t = ys[:, None] - bboxes[:, 1][None]
@@ -722,7 +722,28 @@ class FCOS(nn.Module):
         return loss_cls * 1.0 + loss_center * 1.0 + loss_box * 0.01, losses
 
     def preprocess_targets(self, targets, labels_count):
-        return targets
+        result = []
+        index = 0
+        for i in range(targets.size()[0]):
+            result.append(
+                {
+                    "mode": "xyxy",
+                    "box": targets[:4, index : index + labels_count[i]],
+                    "labels": targets[4, index : index + labels_count[i]],
+                    "area": (
+                        (
+                            targets[2, index : index + labels_count[i]]
+                            - targets[0, index : index + labels_count[i]]
+                        )
+                        * (
+                            targets[3, index : index + labels_count[i]]
+                            - targets[1, index : index + labels_count[i]]
+                        )
+                    ),
+                }
+            )
+            index += labels_count[i]
+        return result
 
     def postprocess_predictions(self, logits):
         boxes = self.postprocessor(
