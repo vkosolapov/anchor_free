@@ -662,7 +662,7 @@ class FCOS(nn.Module):
         nn.init.constant_(self.cls_pred.bias, prior_bias)
         self.scales = nn.ModuleList([Scale(1.0) for _ in range(5)])
 
-        self.fpn_strides = [8, 16, 32, 64, 128]
+        self.fpn_strides = [16, 32, 64, 128]
         fpn_top = FPNTopP6P7(2048, 256, use_p5=True)
         self.fpn = FPN(channels, 256, fpn_top)
         self.fcos_loss = FCOSLoss(
