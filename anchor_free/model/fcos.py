@@ -690,6 +690,8 @@ class FCOS(nn.Module):
 
         input = self.fpn(input)
         self.location = self.compute_location(input)
+        for tensor in input:
+            print(tensor.size())
 
         for feat, scale in zip(input, self.scales):
             cls_out = self.cls_tower(feat)
