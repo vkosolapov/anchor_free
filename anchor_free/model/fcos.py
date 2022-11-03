@@ -208,6 +208,7 @@ class FCOSLoss(nn.Module):
             bboxes = targets_per_img["box"]
             labels_per_img = targets_per_img["labels"]
             area = targets_per_img["area"]
+            print(locations.size(), bboxes.size())
 
             l = xs[:, None] - bboxes[:, 0][None]
             t = ys[:, None] - bboxes[:, 1][None]
