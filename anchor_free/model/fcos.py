@@ -326,8 +326,10 @@ class FCOSPostprocessor(nn.Module):
         center_pred = center_pred.reshape(batch, -1).sigmoid()
 
         candid_ids = cls_pred > self.threshold
-        print(candid_ids.size())
-        top_ns = candid_ids.view(batch, -1).sum(1)
+
+        top_ns = candid_ids.view(batch, candid_ids.shape[1] * candid_ids.shape[2]).sum(
+            1
+        )
         top_ns = top_ns.clamp(max=self.top_n)
 
         cls_pred = cls_pred * center_pred[:, :, None]
