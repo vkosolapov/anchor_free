@@ -92,7 +92,7 @@ class SigmoidFocalLoss(nn.Module):
         alpha = self.alpha
 
         term1 = (1 - p) ** gamma * torch.log(p)
-        term2 = p ** gamma * torch.log(1 - p)
+        term2 = p**gamma * torch.log(1 - p)
 
         loss = (
             -(t == class_ids).float() * alpha * term1
@@ -632,8 +632,9 @@ def boxlist_nms(boxlist, scores, threshold, max_proposal=-1):
 
 
 class FCOS(nn.Module):
-    def __init__(self, in_channel, n_class):
+    def __init__(self, channels, n_class):
         super().__init__()
+        in_channel = channels[-1]
         self.n_class = n_class
         cls_tower = []
         bbox_tower = []
@@ -746,4 +747,3 @@ class FCOS(nn.Module):
         shift_y = shift_y.reshape(-1)
         location = torch.stack((shift_x, shift_y), 1) + stride // 2
         return location
-
