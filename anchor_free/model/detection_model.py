@@ -32,7 +32,7 @@ class DetectionModel(AbstractModel):
             stem_width=32,
             stem_type="deep",
             avg_down=True,
-            features_only=False,
+            features_only=True,
             num_classes=self.num_classes,
         )
         self.backbone = _create_resnet("resnet18", False, **model_args)
@@ -42,7 +42,7 @@ class DetectionModel(AbstractModel):
         #    features_only=False,
         #    num_classes=self.num_classes,
         # )
-        self.backbone = TIMMBackbone(self.backbone, multi_output=False)
+        self.backbone = TIMMBackbone(self.backbone, multi_output=True)
         channels = self.backbone.get_output_channels()
         # self.head = CenterNet(
         #    num_classes=self.num_classes,
