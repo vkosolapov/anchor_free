@@ -728,10 +728,9 @@ class FCOS(nn.Module):
     def compute_location(self, features):
         locations = []
         for i, feat in enumerate(features):
-            print(i)
             _, _, height, width = feat.shape
             location_per_level = self.compute_location_per_level(
-                height, width, self.fpn_strides[i], feat.device
+                height, width, self.fpn_strides[i - 1], feat.device
             )
             locations.append(location_per_level)
         return locations
