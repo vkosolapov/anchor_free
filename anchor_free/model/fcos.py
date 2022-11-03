@@ -667,7 +667,14 @@ class FCOS(nn.Module):
         fpn_top = FPNTopP6P7(2048, 256, use_p5=True)
         self.fpn = FPN(channels, 256, fpn_top)
         self.fcos_loss = FCOSLoss(
-            sizes=[[-1, 64], [64, 128], [128, 256], [256, 512], [512, 100000000]],
+            sizes=[
+                [-1, 64],
+                [64, 128],
+                [128, 256],
+                [256, 512],
+                [512, 1024],
+                [1024, 100000000],
+            ],
             gamma=2.0,
             alpha=0.25,
             iou_loss_type="giou",
