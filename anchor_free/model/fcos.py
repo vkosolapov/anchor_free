@@ -118,7 +118,6 @@ class FCOSLoss(nn.Module):
     def prepare_target(self, points, targets):
         ex_size_of_interest = []
 
-        print(len(self.sizes), len(points))
         for i, point_per_level in enumerate(points):
             size_of_interest_per_level = point_per_level.new_tensor(self.sizes[i])
             ex_size_of_interest.append(
@@ -674,7 +673,8 @@ class FCOS(nn.Module):
                 [128, 256],
                 [256, 512],
                 [512, 1024],
-                [1024, 100000000],
+                [1024, 2048],
+                [2048, 100000000],
             ],
             gamma=2.0,
             alpha=0.25,
